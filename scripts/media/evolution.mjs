@@ -98,7 +98,7 @@ const PHASES = [
   },
   {
     id: '2026-10',
-    caption: '2026-10: own engine, vector output, read check, ten content types',
+    caption: '2026-10: print-inspired editor, vector output, read check',
     commit: null,
     async run(page, shot) {
       await shot(1.2);
@@ -108,8 +108,8 @@ const PHASES = [
         timeout: 20000,
       });
       await shot(1.4);
-      await page.locator('label[for="shape-rounded"]').click();
-      await page.locator('[data-preset="ocean"]').click();
+      await page.locator('label[for="shape-square"]').click();
+      await page.locator('[data-preset="ink"]').click();
       await page.locator('#logo-file').setInputFiles('brand/logo-symbol.png');
       await page.locator('#r-logo').waitFor();
       await page.waitForFunction(() => document.querySelector('.verify')?.dataset.state === 'ok', null, {

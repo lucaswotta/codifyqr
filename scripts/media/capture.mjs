@@ -35,7 +35,7 @@ for (const scheme of ['light', 'dark']) {
   const page = await newPage(scheme, { width: 1200, height: 820 });
   await page.locator('#f-text-content').fill('https://lucaswotta.github.io/codifyqr/');
   await chip(page, 'Rounded').click();
-  await page.locator('#c-fg').fill('#183c36');
+  await page.locator('#c-fg').fill('#171714');
   await waitState(page, 'ok');
   await page.mouse.move(0, 0);
   await page.screenshot({ path: `${OUT}/hero-${scheme}.png` });
@@ -76,8 +76,8 @@ for (const scheme of ['light', 'dark']) {
     await page.locator('[aria-label="Eye frame"] label.chip', { hasText: new RegExp(`^${frame}$`) }).click();
     await page.locator('[aria-label="Eye center"] label.chip', { hasText: new RegExp(`^${ball}$`) }).click();
   };
-  await page.locator('#c-fg').fill('#183c36');
-  await page.locator('#c-bg').fill('#f5f3ea');
+  await page.locator('#c-fg').fill('#171714');
+  await page.locator('#c-bg').fill('#f3f0e7');
   const looks = [
     ['Square', 'Square', 'Square'],
     ['Rounded', 'Rounded', 'Rounded'],
@@ -98,7 +98,7 @@ for (const scheme of ['light', 'dark']) {
   await page.locator('#logo-file').setInputFiles('brand/logo-symbol.png');
   await page.getByRole('button', { name: 'Remove logo' }).waitFor();
   await save('g5');
-  await page.locator('#c-fg').fill('#183c36');
+  await page.locator('#c-fg').fill('#171714');
   await chip(page, 'None').click();
   await page.locator('#logo-file').setInputFiles([]);
   await page.getByRole('button', { name: 'Remove logo' }).click();
@@ -138,7 +138,7 @@ for (const scheme of ['light', 'dark']) {
   await page.locator('[aria-label="Eye center"] label.chip', { hasText: /^Circle$/ }).click();
   await page.waitForTimeout(500);
   await shot(1.2);
-  await page.locator('[data-preset="ocean"]').click();
+  await page.locator('[data-preset="ink"]').click();
   await waitState(page, 'ok');
   await shot(1.4);
   await page.locator('#logo-file').setInputFiles('brand/logo-symbol.png');

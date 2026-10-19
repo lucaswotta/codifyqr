@@ -8,9 +8,9 @@
   --accent: #b12b22;
   --on-accent: #f3f0e7;
   --border: #a9a399;
-  --ok: #1b7a4a;
-  --risk: #8a5300;
-  --bad: #b3261e;
+  --ok: #171714;
+  --risk: #b12b22;
+  --bad: #b12b22;
   --focus: #0b57d0;
   --shadow: none;
   --radius: 0;
@@ -29,9 +29,9 @@
     --accent: #ff6b57;
     --on-accent: #171714;
     --border: #726d64;
-    --ok: #5fd694;
-    --risk: #f0b45a;
-    --bad: #ff8a80;
+    --ok: #f3f0e7;
+    --risk: #ff6b57;
+    --bad: #ff6b57;
     --focus: #8ab4ff;
     --shadow: none;
     color-scheme: dark;
@@ -47,9 +47,9 @@
   --accent: #ff6b57;
   --on-accent: #171714;
   --border: #726d64;
-  --ok: #5fd694;
-  --risk: #f0b45a;
-  --bad: #ff8a80;
+  --ok: #f3f0e7;
+  --risk: #ff6b57;
+  --bad: #ff6b57;
   --focus: #8ab4ff;
   --shadow: none;
   color-scheme: dark;
@@ -894,18 +894,13 @@ h1 {
   }
 }
 
-/* The sheet is a working surface: rules and module-sized details carry the hierarchy. */
-body {
-  background-image: linear-gradient(to right, var(--border) 1px, transparent 1px);
-  background-size: min(100%, 1440px) 100%;
-  background-position: center;
-  background-repeat: no-repeat;
-}
+/* Hairline rules define the sheet's grid. */
 
 .topbar {
   min-height: 72px;
   padding-block: 10px;
   border-bottom: 1px solid var(--text);
+  border-inline: 1px solid var(--border);
 }
 
 .brand {
@@ -955,6 +950,7 @@ body {
 
 .page {
   padding-top: 0;
+  border-inline: 1px solid var(--border);
 }
 .hero {
   max-width: none;
@@ -1032,17 +1028,15 @@ h1 {
 
 .preview-box {
   position: relative;
-  min-height: clamp(270px, 39vh, 470px);
+  min-height: clamp(250px, 34vh, 400px);
   border: 1px solid var(--text);
   background-color: var(--surface-2);
-  background-image:
-    linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 .qr-img {
   border: 12px solid #fff;
   background: #fff;
   box-shadow: 0 0 0 1px var(--text);
+  max-height: min(34vh, 360px);
 }
 .stage-info {
   font-family: var(--mono);
@@ -1184,6 +1178,7 @@ select:focus {
 }
 .footer {
   border-top: 1px solid var(--text);
+  border-inline: 1px solid var(--border);
   font-family: var(--mono);
   font-size: 0.7rem;
 }
@@ -1248,7 +1243,6 @@ select:focus {
   }
   .preview-box {
     min-height: 112px;
-    background-size: 18px 18px;
   }
   .qr-img {
     max-height: 18vh;
