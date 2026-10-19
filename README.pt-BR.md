@@ -5,11 +5,24 @@
   <img src="docs/media/wordmark-light.svg" alt="CodifyQR" height="84">
 </picture>
 
+<br>
+<br>
+
 **Um gerador de QR Code gratuito e de código aberto que roda inteiro no navegador.**
 Sem conta. Sem rastreio. Sem nenhuma requisição de rede depois que a página carrega.
 
-[![CI](https://github.com/lucaswotta/codifyqr/actions/workflows/ci.yml/badge.svg)](https://github.com/lucaswotta/codifyqr/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
+<br>
+
+<a href="https://github.com/lucaswotta/codifyqr/stargazers"><img src="https://img.shields.io/github/stars/lucaswotta/codifyqr?style=flat-square&logo=github&labelColor=000000&color=C8231A" alt="GitHub stars"></a>
+<a href="https://github.com/lucaswotta/codifyqr/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/lucaswotta/codifyqr/ci.yml?branch=main&style=flat-square&label=CI&labelColor=000000&color=C8231A" alt="CI"></a>
+<a href="https://github.com/lucaswotta/codifyqr/commits/main"><img src="https://img.shields.io/github/last-commit/lucaswotta/codifyqr?style=flat-square&labelColor=000000&color=C8231A" alt="Last commit"></a>
+<a href="https://github.com/lucaswotta/codifyqr/issues"><img src="https://img.shields.io/github/issues/lucaswotta/codifyqr?style=flat-square&labelColor=000000&color=C8231A" alt="Open issues"></a>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/lucaswotta/codifyqr?style=flat-square&labelColor=000000&color=C8231A" alt="MIT license"></a>
+<a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-C8231A?style=flat-square&labelColor=000000" alt="Pull requests welcome"></a>
+<img src="https://img.shields.io/badge/tracking-none-C8231A?style=flat-square&labelColor=000000" alt="No tracking">
+<img src="https://img.shields.io/badge/works-offline-C8231A?style=flat-square&labelColor=000000" alt="Works offline">
+
+<br>
 
 [**Abrir o app**](https://lucaswotta.github.io/codifyqr/) ·
 [Recursos](#recursos) ·
