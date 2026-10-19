@@ -1,6 +1,6 @@
 {
   "name": "codifyqr",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Free, open source QR code generator that runs entirely in your browser.",
   "license": "MIT",
