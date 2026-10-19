@@ -1,20 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { parseCsv, toBatchRows, uniqueFileNames } from '../src/export/csv';
-import { crc32, createZip } from '../src/export/zip';
+import { crc32, createZip, createZipBlob } from '../src/export/zip';
 
 describe('zip', () => {
   it('computes the standard CRC32', () => {
     expect(crc32(new TextEncoder().encode('123456789'))).toBe(0xcbf43926);
   });
 
-  it('writes a readable archive', () => {
-    const zip = createZip(
-      [
-        { name: 'a.txt', data: new TextEncoder().encode('hello') },
-        { name: 'ç.txt', data: new Uint8Array([1, 2, 3]) },
-      ],
-      new Date(2026, 9, 19, 10, 30, 0),
-    );
+  it('writes a readable archive', async () => {
+    const entries = [
+      { name: 'a.txt', data: new TextEncoder().encode('hello') },
+      { name: 'ç.txt', data: new Uint8Array([1, 2, 3]) },
+    ];
+    const stamp = new Date(2026, 9, 19, 10, 30, 0);
+    const zip = createZip(entries, stamp);
+    const blobBytes = new Uint8Array(await createZipBlob(entries, stamp).arrayBuffer());
+    expect(blobBytes).toEqual(zip);
     const view = new DataView(zip.buffer);
     expect(view.getUint32(0, true)).toBe(0x04034b50);
     expect(view.getUint32(zip.length - 22, true)).toBe(0x06054b50);
