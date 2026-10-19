@@ -37,19 +37,34 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
     cameraBtn.replaceChildren(icon('camera'), el('span', {}, t('scan.camera')));
   }
 
+  let starting = false;
+
   async function startCamera(): Promise<void> {
+    if (running || starting) return;
     if (!supportsCamera) return notify(t('scan.unsupported'), 'error');
+    starting = true;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
     } catch {
+      starting = false;
       return notify(t('scan.permission'), 'error');
     }
-    video.srcObject = stream;
-    video.hidden = false;
-    placeholder.hidden = true;
+    // Attach the element before giving it the stream; moving it afterwards would interrupt play().
     clear(previewBox);
     put(previewBox, video);
-    await video.play();
+    video.hidden = false;
+    video.srcObject = stream;
+    try {
+      await video.play();
+    } catch (error) {
+      // AbortError means the camera was stopped while starting; anything else is a real failure.
+      if ((error as DOMException).name !== 'AbortError') {
+        stopCamera();
+        notify(t('scan.permission'), 'error');
+      }
+    }
+    starting = false;
+    if (!stream) return;
     cameraBtn.replaceChildren(icon('camera'), el('span', {}, t('scan.stop')));
     running = true;
     void loop();

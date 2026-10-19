@@ -135,6 +135,11 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     }
   }
 
+  const inputTypeFor = (kind: PayloadKind, name: string, type: string, values: Record<string, string>): string => {
+    if (kind === 'event' && (name === 'start' || name === 'end') && values.allDay === 'true') return 'date';
+    return type === 'password' ? 'text' : type;
+  };
+
   const labelFor = (kind: PayloadKind, name: string): string =>
     has(`field.${kind}.${name}`) ? t(`field.${kind}.${name}`) : t(`field.${name}`);
   const placeholderFor = (kind: PayloadKind, name: string, values: Record<string, string>): string => {
@@ -171,6 +176,17 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
         values[field.name] = value;
         state.touched.add(`${kind}.${field.name}`);
         if (kind === 'pix' && field.name === 'key') updatePixNote();
+        if (kind === 'event' && field.name === 'allDay') {
+          // An all-day event has dates only; keep what was typed when switching.
+          for (const name of ['start', 'end']) {
+            const current = values[name] ?? '';
+            if (value === 'true') values[name] = current.slice(0, 10);
+            else if (current.length === 10) values[name] = `${current}T09:00`;
+          }
+          renderFields();
+          refresh();
+          return;
+        }
         if (kind === 'app' && field.name === 'store') {
           const idInput = inputNodes.get('id') as HTMLInputElement | undefined;
           if (idInput) idInput.placeholder = placeholderFor(kind, 'id', values);
@@ -228,7 +244,7 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
         } else {
           control = el('input', {
             ...common,
-            type: field.type === 'password' ? 'text' : field.type,
+            type: inputTypeFor(kind, field.name, field.type, values),
             value: values[field.name] ?? '',
             oninput: (e: Event) => onValue((e.target as HTMLInputElement).value),
           });
@@ -328,6 +344,34 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     refresh();
   }
 
+  /** Range input with a live value, so dragging always shows the number it lands on. */
+  function slider(
+    id: string,
+    labelKey: string,
+    min: number,
+    max: number,
+    step: number,
+    value: number,
+    format: (n: number) => string,
+    onInput: (n: number) => void,
+  ): HTMLElement {
+    const out = el('output', { for: id }, format(value));
+    const input = el('input', {
+      type: 'range',
+      id,
+      min,
+      max,
+      step,
+      value: String(value),
+      oninput: (e: Event) => {
+        const n = Number((e.target as HTMLInputElement).value);
+        out.textContent = format(n);
+        onInput(n);
+      },
+    });
+    return el('div', { class: 'slider-field' }, el('label', { for: id }, el('span', {}, t(labelKey)), out), input);
+  }
+
   let logoNote: HTMLElement | null = null;
 
   function renderStyle(): void {
@@ -358,6 +402,16 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     }
 
     const gradient = s.fg2 ? s.gradient : 'none';
+    const sameEyes = el(
+      'button',
+      {
+        type: 'button',
+        class: 'btn btn-small',
+        hidden: !s.eyeColor,
+        onclick: () => setStyle({ eyeColor: null }, true),
+      },
+      t('style.eyeColor.same'),
+    );
     put(
       styleHost,
       chipRow(
@@ -422,19 +476,15 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
             { class: 'color-row' },
             colorField('style.fg2', s.fg2, (fg2) => setStyle({ fg2 }), 'c-fg2'),
             s.gradient === 'linear'
-              ? el(
-                  'label',
-                  { class: 'range-field', for: 'r-angle' },
-                  el('span', {}, t('style.angle')),
-                  el('input', {
-                    type: 'range',
-                    id: 'r-angle',
-                    min: 0,
-                    max: 360,
-                    step: 15,
-                    value: String(s.gradientAngle),
-                    oninput: (e: Event) => setStyle({ gradientAngle: Number((e.target as HTMLInputElement).value) }),
-                  }),
+              ? slider(
+                  'r-angle',
+                  'style.angle',
+                  0,
+                  360,
+                  15,
+                  s.gradientAngle,
+                  (n) => `${n}°`,
+                  (gradientAngle) => setStyle({ gradientAngle }),
                 )
               : null,
           )
@@ -442,32 +492,26 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
       el(
         'div',
         { class: 'color-row' },
-        colorField('style.eyeColor', s.eyeColor ?? s.fg, (eyeColor) => setStyle({ eyeColor }), 'c-eye'),
-        s.eyeColor
-          ? el(
-              'button',
-              { type: 'button', class: 'btn btn-small', onclick: () => setStyle({ eyeColor: null }, true) },
-              t('style.eyeColor.same'),
-            )
-          : null,
-      ),
-      el(
-        'div',
-        { class: 'color-row' },
-        el(
-          'label',
-          { class: 'range-field', for: 'r-margin' },
-          el('span', {}, `${t('style.margin')}: ${s.margin}`),
-          el('input', {
-            type: 'range',
-            id: 'r-margin',
-            min: 0,
-            max: 8,
-            step: 1,
-            value: String(s.margin),
-            oninput: (e: Event) => setStyle({ margin: Number((e.target as HTMLInputElement).value) }, false),
-          }),
+        colorField(
+          'style.eyeColor',
+          s.eyeColor ?? s.fg,
+          (eyeColor) => {
+            sameEyes.hidden = false;
+            setStyle({ eyeColor });
+          },
+          'c-eye',
         ),
+        sameEyes,
+      ),
+      slider(
+        'r-margin',
+        'style.margin',
+        0,
+        8,
+        1,
+        s.margin,
+        (n) => String(n),
+        (margin) => setStyle({ margin }, false),
       ),
       chipRow(
         'ecc',
@@ -512,20 +556,15 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
             : null,
         ),
         s.logo
-          ? el(
-              'label',
-              { class: 'range-field', for: 'r-logo' },
-              el('span', {}, t('style.logo.size')),
-              el('input', {
-                type: 'range',
-                id: 'r-logo',
-                min: 0.1,
-                max: MAX_LOGO_RATIO.H,
-                step: 0.01,
-                value: String(s.logo.ratio),
-                oninput: (e: Event) =>
-                  setStyle({ logo: { ...s.logo!, ratio: Number((e.target as HTMLInputElement).value) } }),
-              }),
+          ? slider(
+              'r-logo',
+              'style.logo.size',
+              0.1,
+              MAX_LOGO_RATIO.H,
+              0.01,
+              s.logo.ratio,
+              (n) => `${Math.round(n * 100)}%`,
+              (ratio) => setStyle({ logo: { ...s.logo!, ratio } }),
             )
           : null,
         logoNote,

@@ -18,6 +18,8 @@ let toastHost: HTMLElement;
 let disposeStudio: (() => void) | null = null;
 
 function notify(message: string, kind: 'info' | 'error' = 'info'): void {
+  // A repeated message replaces the one on screen instead of stacking up.
+  for (const old of toastHost.querySelectorAll('.toast')) if (old.textContent === message) old.remove();
   const toast = el('p', { class: `toast toast-${kind}` }, message);
   toastHost.append(toast);
   setTimeout(() => toast.remove(), kind === 'error' ? 6000 : 3500);
