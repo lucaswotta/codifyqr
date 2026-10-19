@@ -55,6 +55,11 @@
   color-scheme: dark;
 }
 
+/* biome-ignore lint/complexity/noImportantStyles: component display rules must not reveal hidden elements */
+[hidden] {
+  display: none !important;
+}
+
 *,
 *::before,
 *::after {
@@ -833,10 +838,42 @@ h1 {
 }
 
 @media (max-width: 860px) and (min-height: 640px) {
+  /* The pinned preview must not hide the field being edited, so it stays compact. */
+  html {
+    scroll-padding-top: 250px;
+  }
+
   .stage {
     position: sticky;
     top: 0;
     z-index: 5;
+    gap: 8px;
+  }
+
+  .preview-box {
+    min-height: 120px;
+    padding: 8px;
+  }
+
+  .qr-img {
+    max-height: 22vh;
+  }
+
+  .stage-info,
+  .verify-detail,
+  .verify-causes {
+    display: none;
+  }
+
+  .verify {
+    grid-template-columns: 40px 1fr;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  .mascot {
+    width: 40px;
+    height: 40px;
   }
 }
 

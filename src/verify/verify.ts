@@ -2,7 +2,7 @@ import { svgToCanvas } from '../export/raster';
 import type { QrStyle } from '../qr/style';
 import { planQr, type QrPlan, renderQrSvg } from '../qr/svg';
 import { applyFix, type Cause, type CauseId, FIX_ORDER, type FixId, staticCauses } from './analysis';
-import { decodeCanvas } from './decode';
+import { decodeWithRetries } from './decode';
 
 export type VerifyState = 'ok' | 'risk' | 'fail';
 
@@ -42,7 +42,7 @@ async function readsAt(
   ctx.fillRect(0, 0, px, px);
   if (level.blur > 0 && 'filter' in ctx) ctx.filter = `blur(${level.blur}px)`;
   ctx.drawImage(source, 0, 0);
-  const decoded = await decodeCanvas(canvas);
+  const decoded = await decodeWithRetries(canvas);
   return { read: decoded === text, mismatch: decoded !== null && decoded !== text };
 }
 
@@ -59,6 +59,11 @@ export async function verifyQr(text: string, style: QrStyle): Promise<VerifyResu
   if (mismatch) causes.push({ id: 'mismatch', level: 'fail' });
 
   const [small, medium, large] = reads as [boolean, boolean, boolean];
+  if (!small && (medium || large)) {
+    const styled = style.shape !== 'square' || style.eyeFrame !== 'square' || style.eyeBall !== 'square';
+    const id = styled ? 'shape' : 'dense';
+    if (!causes.some((c) => c.id === id)) causes.push({ id, level: 'risk' });
+  }
   const hasFailCause = causes.some((c) => c.level === 'fail');
   let state: VerifyState;
   if (!medium && !large) state = 'fail';

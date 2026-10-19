@@ -796,7 +796,8 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
       suggestion = result.state === 'ok' ? null : await suggestFix(text, style, result);
       if (token !== verifyToken) return;
       renderVerify(result.state);
-    } catch {
+    } catch (error) {
+      console.warn('Read check failed', error);
       if (token === verifyToken) renderVerify('empty');
     }
   }

@@ -153,6 +153,8 @@ function render(): void {
   void showMode(mode);
 }
 
+let updateRequested = false;
+
 function registerServiceWorker(): void {
   if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
   navigator.serviceWorker
@@ -168,11 +170,9 @@ function registerServiceWorker(): void {
     .catch(() => {
       // Offline support is an extra; the app works without it.
     });
-  let reloading = false;
+  // The first install also fires controllerchange (clients.claim). Reload only after the user asked for an update.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloading) return;
-    reloading = true;
-    location.reload();
+    if (updateRequested) location.reload();
   });
 }
 
@@ -183,7 +183,14 @@ function showUpdate(worker: ServiceWorker): void {
     el('span', {}, t('pwa.update')),
     el(
       'button',
-      { type: 'button', class: 'btn btn-small', onclick: () => worker.postMessage('SKIP_WAITING') },
+      {
+        type: 'button',
+        class: 'btn btn-small',
+        onclick: () => {
+          updateRequested = true;
+          worker.postMessage('SKIP_WAITING');
+        },
+      },
       t('pwa.reload'),
     ),
     el('button', { type: 'button', class: 'btn btn-small', onclick: () => banner.remove() }, t('pwa.dismiss')),

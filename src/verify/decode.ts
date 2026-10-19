@@ -50,3 +50,37 @@ export async function decodeCanvas(
     null
   );
 }
+
+/**
+ * Camera apps retry with softened frames. jsQR alone misses styled codes at some sizes that
+ * ZXing-based readers handle, so the verifier tries the raw frame, then blurred and halved copies.
+ */
+export async function decodeWithRetries(
+  canvas: HTMLCanvasElement,
+  options: DecodeOptions = {},
+): Promise<string | null> {
+  const direct = await decodeCanvas(canvas, options);
+  if (direct !== null) return direct;
+
+  const attempts: { scale: number; blur: number }[] = [
+    { scale: 1, blur: 0.8 },
+    { scale: 1, blur: 1.6 },
+    { scale: 0.5, blur: 0 },
+    { scale: 0.5, blur: 0.8 },
+  ];
+  for (const { scale, blur } of attempts) {
+    const copy = document.createElement('canvas');
+    copy.width = Math.max(32, Math.round(canvas.width * scale));
+    copy.height = Math.max(32, Math.round(canvas.height * scale));
+    const ctx = copy.getContext('2d', { willReadFrequently: true });
+    if (!ctx) continue;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, copy.width, copy.height);
+    if (blur > 0 && 'filter' in ctx) ctx.filter = `blur(${blur}px)`;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(canvas, 0, 0, copy.width, copy.height);
+    const text = await decodeCanvas(copy, options);
+    if (text !== null) return text;
+  }
+  return null;
+}
