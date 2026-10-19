@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.1 (2026-10-19)
+## 2.1.0 (2026-10-19)
 
 - Paste an image (`Ctrl+V`) in `Scan` to decode it directly from the clipboard, and click `Edit in Create` on any decoded result to load its text into the editor.
 - Theme switches update the page in place without resetting active camera streams or batch jobs; language switches keep `Batch` and `Scan` content.
