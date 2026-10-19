@@ -236,7 +236,7 @@
   "pdf.note": "El PDF guarda una imagen de alta resolución. Para impresión 100% vectorial, usa el SVG.",
   "batch.title": "Lote",
   "batch.lead": "Un código por línea. Usa una segunda columna para nombrar cada archivo. También puedes importar un CSV.",
-  "batch.empty": "Las líneas del lote aparecen aquí.",
+  "batch.idle": "Las líneas del lote aparecen aquí.",
   "batch.placeholder": "https://ejemplo.com/a,tienda-a\nhttps://ejemplo.com/b,tienda-b",
   "batch.import": "Importar CSV",
   "batch.rows": "{n} códigos",
