@@ -65,10 +65,17 @@ test('language menu shows full names, works with the keyboard and closes with Es
   await expect(button).toBeFocused();
 });
 
-test('typed content survives a language change', async ({ page }) => {
+test('typed content survives a language change and theme switch', async ({ page }) => {
   await page.goto('./');
   await fillContent(page, 'https://example.com/keep');
+  await page.getByRole('tab', { name: 'Batch' }).click();
+  await page.locator('#batch-input').fill('https://example.com/1,one\nhttps://example.com/2,two');
+  await page.locator('.icon-btn[aria-label^="Theme"]').click();
+  await expect(page.locator('#batch-input')).toHaveValue('https://example.com/1,one\nhttps://example.com/2,two');
   await chooseLanguage(page, 'PT');
+  await expect(page.locator('#batch-input')).toHaveValue('https://example.com/1,one\nhttps://example.com/2,two');
+  await expect(page.getByText('2 códigos')).toBeVisible();
+  await page.getByRole('tab', { name: 'Criar' }).click();
   await expect(page.locator('#f-text-content')).toHaveValue('https://example.com/keep');
   await expect(page.locator('.qr-img')).toBeVisible();
 });

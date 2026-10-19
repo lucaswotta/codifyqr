@@ -10,6 +10,14 @@ export interface StudioState {
   frame: FrameId;
   frameText: Record<keyof FrameText, string | null>;
   pngSize: number;
+  batch: {
+    input: string;
+    format: 'png' | 'svg';
+    size: 512 | 1024 | 2048;
+  };
+  scan: {
+    text: string | null;
+  };
 }
 
 export const state: StudioState = {
@@ -20,6 +28,8 @@ export const state: StudioState = {
   frame: 'none',
   frameText: { headline: null, subline: null, footnote: null },
   pngSize: 1024,
+  batch: { input: '', format: 'png', size: 1024 },
+  scan: { text: null },
 };
 
 export function valuesFor(kind: PayloadKind): Values {

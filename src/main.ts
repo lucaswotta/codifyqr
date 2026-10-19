@@ -250,16 +250,20 @@ function render(): void {
   panels.scan = undefined;
   panels.create = undefined;
 
-  const themeChoice = currentTheme();
+  let themeChoice = currentTheme();
   const themeBtn = el(
     'button',
     { type: 'button', class: 'icon-btn', 'aria-label': t(`theme.${themeChoice}`), title: t(`theme.${themeChoice}`) },
     icon(themeChoice === 'auto' ? 'auto' : themeChoice === 'light' ? 'sun' : 'moon'),
   );
-  themeBtn.addEventListener('click', () => {
-    applyTheme(nextTheme(themeChoice));
-    render();
-  });
+  const cycleTheme = () => {
+    themeChoice = nextTheme(themeChoice);
+    applyTheme(themeChoice);
+    themeBtn.setAttribute('aria-label', t(`theme.${themeChoice}`));
+    themeBtn.title = t(`theme.${themeChoice}`);
+    themeBtn.replaceChildren(icon(themeChoice === 'auto' ? 'auto' : themeChoice === 'light' ? 'sun' : 'moon'));
+  };
+  themeBtn.addEventListener('click', cycleTheme);
 
   const shortcuts = shortcutsDialog();
   const help = helpDialog(() => shortcuts.showModal());
@@ -377,8 +381,7 @@ function render(): void {
       const next = MODES[(MODES.indexOf(mode) + step) % MODES.length]!;
       void showMode(next);
     } else if (key === 't') {
-      applyTheme(nextTheme(themeChoice));
-      render();
+      cycleTheme();
     } else if (key === 'l') {
       void setLang(LANGS[(LANGS.indexOf(getLang()) + 1) % LANGS.length]!).then(render);
     } else if (key === 'h') {

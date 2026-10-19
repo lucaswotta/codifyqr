@@ -3,6 +3,7 @@ import { analyzeScan, type ScanAnalysis } from '../verify/scan';
 import { clear, el, put } from './dom';
 import { t } from './i18n';
 import { icon } from './icons';
+import { state } from './state';
 
 export function createReader(notify: (message: string, kind?: 'info' | 'error') => void): HTMLElement {
   const video = el('video', {
@@ -112,6 +113,7 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
       const text = await decodeCanvas(canvas, { invert: true });
       if (text) showResult(text);
       else {
+        state.scan.text = null;
         clear(resultHost);
         notify(t('scan.none'), 'error');
       }
@@ -121,6 +123,7 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
   }
 
   function showResult(text: string): void {
+    state.scan.text = text;
     const info: ScanAnalysis = analyzeScan(text);
     clear(resultHost);
     const warnings = info.warnings.length
@@ -163,6 +166,7 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
             type: 'button',
             class: 'btn',
             onclick: () => {
+              state.scan.text = null;
               clear(resultHost);
               if (supportsCamera) void startCamera();
             },
@@ -198,6 +202,7 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
   });
 
   put(previewBox, placeholder, video);
+  if (state.scan.text) showResult(state.scan.text);
   const section = el(
     'div',
     { class: 'tool tool-scan', id: 'scan' },

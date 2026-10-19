@@ -1,7 +1,7 @@
 import { parseCsv, toBatchRows, uniqueFileNames } from '../export/csv';
 import { fileName, saveBlob } from '../export/download';
 import { svgToPng } from '../export/raster';
-import { createZip } from '../export/zip';
+import { createZipBlob } from '../export/zip';
 import { PAYLOADS } from '../payloads';
 import { planQr, renderQrSvg } from '../qr/svg';
 import { clear, debounce, el } from './dom';
@@ -15,6 +15,7 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
   const input = el('textarea', {
     id: 'batch-input',
     rows: 10,
+    value: state.batch.input,
     placeholder: t('batch.placeholder'),
     spellcheck: false,
     'aria-describedby': 'batch-count',
@@ -22,12 +23,13 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
   const count = el('p', { class: 'field-note', id: 'batch-count', 'aria-live': 'polite' });
   const progress = el('progress', { class: 'progress', max: 1, value: 0, hidden: true });
   const status = el('p', { class: 'field-note', role: 'status', 'aria-live': 'polite' });
-  const list = el('ol', { class: 'rows', 'data-empty': t('batch.empty'), 'aria-label': t('batch.rows', { n: 0 }) });
-  let format: 'png' | 'svg' = 'png';
-  let size = 1024;
+  const list = el('ol', { class: 'rows', 'data-empty': t('batch.idle'), 'aria-label': t('batch.rows', { n: 0 }) });
+  let format: 'png' | 'svg' = state.batch.format;
+  let size: 512 | 1024 | 2048 = state.batch.size;
 
   const rows = () => toBatchRows(parseCsv(input.value));
   const updateList = () => {
+    state.batch.input = input.value;
     const all = rows();
     const n = all.length;
     count.textContent = n > BATCH_LIMIT ? t('batch.tooMany', { max: BATCH_LIMIT }) : t('batch.rows', { n });
@@ -103,7 +105,7 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
         if (i % 4 === 3) await new Promise((r) => setTimeout(r));
       }
       if (entries.length > 0) {
-        saveBlob(new Blob([createZip(entries) as BlobPart], { type: 'application/zip' }), fileName('batch', 'zip'));
+        saveBlob(createZipBlob(entries), fileName('batch', 'zip'));
         status.textContent = t('batch.done');
       }
       if (failed.length > 0)
@@ -121,8 +123,12 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
     value: T,
     onPick: (o: T) => void,
   ) => {
-    const box = el('div', { class: 'chips chips-small', role: 'radiogroup', 'aria-label': label });
-    box.style.setProperty('--n', String(options.length));
+    const box = el('div', {
+      class: 'chips chips-small',
+      role: 'radiogroup',
+      'aria-label': label,
+      'data-cols': String(options.length),
+    });
     for (const option of options) {
       box.append(
         el('input', {
@@ -140,10 +146,12 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
   };
   const formatField = group('batch-format', t('batch.format'), ['png', 'svg'] as const, format, (f) => {
     format = f;
+    state.batch.format = f;
     updateList();
   });
   const sizeField = group('batch-size', `${t('export.size')} (px)`, [512, 1024, 2048] as const, size, (n) => {
     size = n;
+    state.batch.size = n;
   });
 
   return el(
