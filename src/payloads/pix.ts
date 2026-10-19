@@ -106,6 +106,7 @@ const cleanLabel = (s: string) =>
 
 export const PIX_NAME_MAX = 25;
 export const PIX_CITY_MAX = 15;
+export const PIX_DEFAULT_CITY = 'BRASIL';
 
 export const pix: PayloadSpec = {
   kind: 'pix',
@@ -113,7 +114,7 @@ export const pix: PayloadSpec = {
   fields: [
     { name: 'key', type: 'text', required: true, autocomplete: 'off', maxLength: 77 },
     { name: 'name', type: 'text', required: true, maxLength: PIX_NAME_MAX, autocomplete: 'off' },
-    { name: 'city', type: 'text', required: true, maxLength: PIX_CITY_MAX, autocomplete: 'off' },
+    { name: 'city', type: 'text', maxLength: PIX_CITY_MAX, autocomplete: 'off' },
     { name: 'amount', type: 'text', inputMode: 'decimal', autocomplete: 'off' },
     { name: 'message', type: 'text', maxLength: 60, autocomplete: 'off' },
     { name: 'txid', type: 'text', maxLength: 25, autocomplete: 'off' },
@@ -130,10 +131,11 @@ export const pix: PayloadSpec = {
       .slice(0, PIX_NAME_MAX)
       .trim();
     if (!name) errors.name = 'required';
-    const city = cleanLabel(v.city ?? '')
-      .slice(0, PIX_CITY_MAX)
-      .trim();
-    if (!city) errors.city = 'required';
+    // The standard requires a city, but nobody validates it, so an empty field becomes a neutral value.
+    const city =
+      cleanLabel(v.city ?? '')
+        .slice(0, PIX_CITY_MAX)
+        .trim() || PIX_DEFAULT_CITY;
 
     let amount: string | undefined;
     const rawAmount = (v.amount ?? '').trim().replace(/^R\$\s*/i, '');

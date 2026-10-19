@@ -57,6 +57,12 @@ describe('pix', () => {
     expect(result.text.slice(-4)).toBe(crc16(result.text.slice(0, -4)));
   });
 
+  it('writes BRASIL when the city is left empty', () => {
+    const result = build('pix', { key: 'ana@example.com', name: 'Ana', city: '  ' });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.text).toContain('6006BRASIL');
+  });
+
   it('reports field errors without leaking values', () => {
     const result = build('pix', { key: 'nope', name: '', city: 'X', amount: '-3' });
     expect(result).toEqual({ ok: false, errors: { key: 'pixKey', name: 'required', amount: 'pixAmount' } });
