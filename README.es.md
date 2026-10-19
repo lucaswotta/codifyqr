@@ -229,7 +229,7 @@ brand/        fuentes del logo, la mascota y la paleta
 | 2025-09 | Logo, texto, colores y tres tamaños de exportación; salida con mapa de bits estirado. |
 | 2026-10 | Reescritura: codificador propio, render vectorial, revisión de lectura, diez tipos de contenido, PWA, interfaz nueva. Ver [CHANGELOG.md](CHANGELOG.md). |
 
-![Las cuatro fases lado a lado, grabadas desde los commits reales](docs/media/evolution/comparison.gif)
+![Las cuatro fases una tras otra, a pantalla completa, grabadas desde los commits reales](docs/media/evolution/timeline.gif)
 
 Cada fase se grabó desde su propio commit (`004d276`, `c46d0a5`, `cd6e7c9` y el build actual): [2022](docs/media/evolution/2022-10.gif), [2025-08](docs/media/evolution/2025-08.gif), [2025-09](docs/media/evolution/2025-09.gif), [2026-10](docs/media/evolution/2026-10.gif). `scripts/media/evolution.mjs` las regenera.
 

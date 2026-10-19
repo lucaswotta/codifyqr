@@ -1,4 +1,4 @@
-// Records one GIF per phase of the project from the commits listed below, plus a side by side comparison.
+// Records one GIF per phase of the project from the commits listed below, plus a slideshow of the four phases.
 // Usage: pnpm build && pnpm preview --port 4173 & node scripts/media/evolution.mjs
 // Needs git, ffmpeg and network access: the old phases load qrcodejs and fonts from CDNs, and the 2022 page
 // calls a third party QR API. Output goes to docs/media/evolution.
@@ -137,7 +137,7 @@ for (const phase of PHASES) {
     server = served.server;
     base = served.url;
   }
-  const ctx = await browser.newContext({ viewport: { width: 900, height: 600 }, locale: 'pt-BR' });
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'pt-BR' });
   const page = await ctx.newPage();
   await page.goto(base, { waitUntil: 'load' });
   await page.waitForTimeout(1200);
@@ -165,7 +165,7 @@ for (const phase of PHASES) {
     '-i',
     join(dir, 'frames.txt'),
     '-vf',
-    `fps=10,scale=900:600,pad=900:650:0:0:color=0x15302c,drawtext=fontfile=${FONT}:text='${caption}':fontcolor=white:fontsize=22:x=(w-text_w)/2:y=600+(50-text_h)/2`,
+    `fps=10,scale=1280:800,pad=1280:856:0:0:color=0x000000,drawtext=fontfile=${FONT}:text='${caption}':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=800+(56-text_h)/2`,
     '-c:v',
     'ffv1',
     join(TMP, `${phase.id}.mkv`),
@@ -175,29 +175,17 @@ for (const phase of PHASES) {
 }
 await browser.close();
 
-const longest = Math.max(...clips.map((c) => c.total));
-for (const c of clips) {
+const gif = (input, output, extra = []) =>
   ff([
+    ...extra,
     '-i',
-    join(TMP, `${c.id}.mkv`),
+    input,
     '-vf',
-    `tpad=stop_mode=clone:stop_duration=${longest - c.total + 0.5}`,
-    '-c:v',
-    'ffv1',
-    join(TMP, `${c.id}-padded.mkv`),
+    'fps=8,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer:bayer_scale=4',
+    output,
   ]);
-  ff([
-    '-i',
-    join(TMP, `${c.id}.mkv`),
-    '-vf',
-    'fps=8,scale=720:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer:bayer_scale=4',
-    join(OUT, `${c.id}.gif`),
-  ]);
-}
-ff([
-  ...clips.flatMap((c) => ['-i', join(TMP, `${c.id}-padded.mkv`)]),
-  '-filter_complex',
-  '[0]scale=640:-1[a];[1]scale=640:-1[b];[2]scale=640:-1[c];[3]scale=640:-1[d];[a][b]hstack[r1];[c][d]hstack[r2];[r1][r2]vstack,fps=8,split[x][y];[x]palettegen=max_colors=128[p];[y][p]paletteuse=dither=bayer:bayer_scale=4',
-  join(OUT, 'comparison.gif'),
-]);
+for (const c of clips) gif(join(TMP, `${c.id}.mkv`), join(OUT, `${c.id}.gif`));
+// One full screen slideshow of the four phases, one after the other.
+writeFileSync(join(TMP, 'timeline.txt'), clips.map((c) => `file '${c.id}.mkv'`).join('\n'));
+gif(join(TMP, 'timeline.txt'), join(OUT, 'timeline.gif'), ['-f', 'concat', '-safe', '0']);
 console.log('wrote', OUT);
