@@ -2,6 +2,7 @@ import { decodeCanvas } from '../verify/decode';
 import { analyzeScan, type ScanAnalysis } from '../verify/scan';
 import { clear, el, put } from './dom';
 import { t } from './i18n';
+import { icon } from './icons';
 
 export function createReader(notify: (message: string, kind?: 'info' | 'error') => void): HTMLElement {
   const video = el('video', {
@@ -13,10 +14,18 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
   });
   const canvas = document.createElement('canvas');
   const resultHost = el('div', { class: 'scan-result', 'aria-live': 'polite' });
+  const previewBox = el('div', { class: 'preview-box scan-preview' });
+  const placeholder = el('p', { class: 'stage-empty' }, icon('scan'), el('span', {}, t('scan.lead')));
+  let shownUrl: string | null = null;
   let stream: MediaStream | null = null;
   let running = false;
 
-  const cameraBtn = el('button', { type: 'button', class: 'btn btn-primary' }, t('scan.camera'));
+  const cameraBtn = el(
+    'button',
+    { type: 'button', class: 'btn btn-primary' },
+    icon('camera'),
+    el('span', {}, t('scan.camera')),
+  );
   const supportsCamera = !!navigator.mediaDevices?.getUserMedia;
 
   function stopCamera(): void {
@@ -25,7 +34,7 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
     stream = null;
     video.srcObject = null;
     video.hidden = true;
-    cameraBtn.textContent = t('scan.camera');
+    cameraBtn.replaceChildren(icon('camera'), el('span', {}, t('scan.camera')));
   }
 
   async function startCamera(): Promise<void> {
@@ -37,8 +46,11 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
     }
     video.srcObject = stream;
     video.hidden = false;
+    placeholder.hidden = true;
+    clear(previewBox);
+    put(previewBox, video);
     await video.play();
-    cameraBtn.textContent = t('scan.stop');
+    cameraBtn.replaceChildren(icon('camera'), el('span', {}, t('scan.stop')));
     running = true;
     void loop();
   }
@@ -67,6 +79,10 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
   async function readImage(file: File): Promise<void> {
     if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) return;
     const url = URL.createObjectURL(file);
+    if (shownUrl) URL.revokeObjectURL(shownUrl);
+    shownUrl = url;
+    clear(previewBox);
+    previewBox.append(el('img', { class: 'qr-img', src: url, alt: file.name }));
     try {
       const img = new Image();
       img.src = url;
@@ -86,8 +102,6 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
       }
     } catch {
       notify(t('scan.none'), 'error');
-    } finally {
-      URL.revokeObjectURL(url);
     }
   }
 
@@ -119,7 +133,7 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
       warnings,
       el(
         'div',
-        { class: 'export-row' },
+        { class: 'btn-grid' },
         copyBtn,
         info.url
           ? el(
@@ -168,21 +182,26 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
     if (f) void readImage(f);
   });
 
+  put(previewBox, placeholder, video);
   const section = el(
-    'section',
-    { class: 'tool', id: 'scan' },
-    el('h2', { class: 'section-title' }, t('scan.title')),
-    el('p', { class: 'lead' }, t('scan.lead')),
+    'div',
+    { class: 'tool tool-scan', id: 'scan' },
     el(
-      'div',
-      { class: 'export-row' },
-      supportsCamera ? cameraBtn : null,
-      fileInput,
-      el('label', { for: 'scan-file', class: 'btn' }, t('scan.file')),
+      'section',
+      { class: 'col' },
+      el('h2', { class: 'section-title' }, t('scan.title')),
+      el('p', { class: 'lead' }, t('scan.lead')),
+      el(
+        'div',
+        { class: 'btn-grid' },
+        supportsCamera ? cameraBtn : null,
+        fileInput,
+        el('label', { for: 'scan-file', class: 'btn' }, icon('file'), el('span', {}, t('scan.file'))),
+      ),
+      drop,
     ),
-    video,
-    drop,
-    resultHost,
+    el('section', { class: 'col col-stage', 'aria-label': t('scan.title') }, previewBox),
+    el('aside', { class: 'col col-side' }, resultHost),
   );
   // Release the camera when the tool is hidden or the page goes away.
   window.addEventListener('pagehide', stopCamera);

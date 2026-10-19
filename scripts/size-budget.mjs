@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
-const BUDGET_KB = 60;
+const BUDGET_KB = 80;
 const dist = process.argv[2] ?? 'dist';
 const html = readFileSync(join(dist, 'index.html'), 'utf8');
 const gz = (file) => gzipSync(readFileSync(join(dist, file))).length;
@@ -20,6 +20,11 @@ for (const m of entrySource.matchAll(/from\s*["'`]\.\/([^"'`]+\.js)["'`]/g)) fil
 const locales = [...entrySource.matchAll(/["'`]\.\/((?:en|pt-BR|es)-[^"'`]+\.js)["'`]/g)].map((m) => `assets/${m[1]}`);
 if (locales.length !== 3) throw new Error(`Expected 3 language chunks, found ${locales.length}`);
 const biggestLocale = Math.max(...locales.map(gz));
+
+// Fonts referenced by the stylesheet are part of the first paint.
+const css = [...files].find((f) => f.endsWith('.css'));
+for (const m of readFileSync(join(dist, css), 'utf8').matchAll(/url\(([^)]*\.woff2)\)/g))
+  files.add(local(m[1].replace(/["']/g, '').replace(/^\.?\//, '/')));
 
 let total = biggestLocale;
 for (const f of files) {

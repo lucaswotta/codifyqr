@@ -4,8 +4,9 @@ import { svgToPng } from '../export/raster';
 import { createZip } from '../export/zip';
 import { PAYLOADS } from '../payloads';
 import { planQr, renderQrSvg } from '../qr/svg';
-import { el } from './dom';
+import { clear, debounce, el } from './dom';
 import { t } from './i18n';
+import { icon } from './icons';
 import { state } from './state';
 
 export const BATCH_LIMIT = 500;
@@ -13,7 +14,7 @@ export const BATCH_LIMIT = 500;
 export function createBatch(notify: (message: string, kind?: 'info' | 'error') => void): HTMLElement {
   const input = el('textarea', {
     id: 'batch-input',
-    rows: 8,
+    rows: 10,
     placeholder: t('batch.placeholder'),
     spellcheck: false,
     'aria-describedby': 'batch-count',
@@ -21,16 +22,31 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
   const count = el('p', { class: 'field-note', id: 'batch-count', 'aria-live': 'polite' });
   const progress = el('progress', { class: 'progress', max: 1, value: 0, hidden: true });
   const status = el('p', { class: 'field-note', role: 'status', 'aria-live': 'polite' });
+  const list = el('ol', { class: 'rows', 'aria-label': t('batch.rows', { n: 0 }) });
   let format: 'png' | 'svg' = 'png';
   let size = 1024;
 
   const rows = () => toBatchRows(parseCsv(input.value));
-  const updateCount = () => {
-    const n = rows().length;
+  const updateList = () => {
+    const all = rows();
+    const n = all.length;
     count.textContent = n > BATCH_LIMIT ? t('batch.tooMany', { max: BATCH_LIMIT }) : t('batch.rows', { n });
+    const names = uniqueFileNames(all.slice(0, BATCH_LIMIT), format);
+    clear(list);
+    for (const [i, row] of all.slice(0, BATCH_LIMIT).entries()) {
+      list.append(
+        el(
+          'li',
+          { class: 'row', 'data-state': 'idle' },
+          el('span', { class: 'row-n' }, String(i + 1)),
+          el('span', { class: 'row-content' }, row.content),
+          el('span', { class: 'row-name' }, names[i]),
+        ),
+      );
+    }
   };
-  input.addEventListener('input', updateCount);
-  updateCount();
+  input.addEventListener('input', debounce(updateList, 120));
+  updateList();
 
   const fileInput = el('input', {
     type: 'file',
@@ -43,11 +59,16 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
       target.value = '';
       if (!file || file.size > 2 * 1024 * 1024) return;
       input.value = await file.text();
-      updateCount();
+      updateList();
     },
   });
 
-  const generate = el('button', { type: 'button', class: 'btn btn-primary' }, t('batch.generate'));
+  const generate = el(
+    'button',
+    { type: 'button', class: 'btn btn-primary' },
+    icon('download'),
+    el('span', {}, t('batch.generate')),
+  );
   generate.addEventListener('click', async () => {
     const all = rows().slice(0, BATCH_LIMIT);
     if (all.length === 0) return notify(t('batch.empty'), 'error');
@@ -56,6 +77,8 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
     progress.value = 0;
     status.textContent = '';
     const names = uniqueFileNames(all, format);
+    const items = [...list.children] as HTMLElement[];
+    for (const item of items) item.dataset.state = 'idle';
     const entries: { name: string; data: Uint8Array }[] = [];
     const failed: string[] = [];
     try {
@@ -70,8 +93,10 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
               ? new TextEncoder().encode(`<?xml version="1.0" encoding="UTF-8"?>\n${svg}`)
               : new Uint8Array(await (await svgToPng(svg, size)).arrayBuffer());
           entries.push({ name: names[i]!, data });
+          if (items[i]) items[i]!.dataset.state = 'ok';
         } catch {
           failed.push(String(i + 1));
+          if (items[i]) items[i]!.dataset.state = 'fail';
         }
         progress.value = (i + 1) / all.length;
         status.textContent = t('batch.progress', { done: i + 1, total: all.length });
@@ -89,41 +114,71 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
     }
   });
 
-  const formatSelect = el(
-    'select',
-    { id: 'batch-format', onchange: (e: Event) => (format = (e.target as HTMLSelectElement).value as 'png' | 'svg') },
-    el('option', { value: 'png' }, 'PNG'),
-    el('option', { value: 'svg' }, 'SVG'),
-  );
-  const sizeSelect = el(
-    'select',
-    { id: 'batch-size', onchange: (e: Event) => (size = Number((e.target as HTMLSelectElement).value)) },
-    ...[512, 1024, 2048].map((s) => el('option', { value: String(s), selected: s === size }, `${s} px`)),
-  );
+  const group = <T extends string | number>(
+    name: string,
+    label: string,
+    options: readonly T[],
+    value: T,
+    onPick: (o: T) => void,
+  ) => {
+    const box = el('div', { class: 'chips chips-small', role: 'radiogroup', 'aria-label': label });
+    box.style.setProperty('--n', String(options.length));
+    for (const option of options) {
+      box.append(
+        el('input', {
+          type: 'radio',
+          name,
+          id: `${name}-${option}`,
+          class: 'chip-input',
+          checked: option === value,
+          onchange: () => onPick(option),
+        }),
+        el('label', { for: `${name}-${option}`, class: 'chip' }, el('span', {}, String(option).toUpperCase())),
+      );
+    }
+    return el('div', { class: 'field' }, el('span', { class: 'label' }, label), box);
+  };
+  const formatField = group('batch-format', t('batch.format'), ['png', 'svg'] as const, format, (f) => {
+    format = f;
+    updateList();
+  });
+  const sizeField = group('batch-size', `${t('export.size')} (px)`, [512, 1024, 2048] as const, size, (n) => {
+    size = n;
+  });
 
   return el(
-    'section',
-    { class: 'tool', id: 'batch' },
-    el('h2', { class: 'section-title' }, t('batch.title')),
-    el('p', { class: 'lead' }, t('batch.lead')),
+    'div',
+    { class: 'tool tool-batch', id: 'batch' },
     el(
-      'div',
-      { class: 'field' },
-      el('label', { for: 'batch-input', class: 'sr-only' }, t('batch.title')),
-      input,
-      count,
+      'section',
+      { class: 'col' },
+      el('h2', { class: 'section-title' }, t('batch.title')),
+      el('p', { class: 'lead' }, t('batch.lead')),
+      el(
+        'div',
+        { class: 'field' },
+        el('label', { for: 'batch-input', class: 'sr-only' }, t('batch.title')),
+        input,
+        count,
+      ),
+      el(
+        'div',
+        { class: 'btn-grid' },
+        fileInput,
+        el('label', { for: 'batch-file', class: 'btn' }, icon('upload'), el('span', {}, t('batch.import'))),
+      ),
     ),
+    el('section', { class: 'col col-stage', 'aria-label': t('batch.rows', { n: 0 }) }, list),
     el(
-      'div',
-      { class: 'export-row' },
-      fileInput,
-      el('label', { for: 'batch-file', class: 'btn' }, t('batch.import')),
-      el('label', { class: 'inline-field', for: 'batch-format' }, t('batch.format'), formatSelect),
-      el('label', { class: 'inline-field', for: 'batch-size' }, t('export.size'), sizeSelect),
+      'aside',
+      { class: 'col col-side' },
+      el('h2', { class: 'section-title' }, t('export.title')),
+      formatField,
+      sizeField,
+      el('p', { class: 'hint' }, `${t('batch.style')} ${t('batch.limit', { max: BATCH_LIMIT })}`),
+      el('div', { class: 'btn-grid' }, generate),
+      progress,
+      status,
     ),
-    el('p', { class: 'hint' }, `${t('batch.style')} ${t('batch.limit', { max: BATCH_LIMIT })}`),
-    el('div', { class: 'export-row' }, generate),
-    progress,
-    status,
   );
 }

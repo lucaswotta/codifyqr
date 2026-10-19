@@ -12,6 +12,8 @@ import { type Composition, composeFrame, embedSvg, FRAME_IDS, type FrameId, type
 import { type FixSuggestion, suggestFix, type VerifyResult, verifyQr } from '../verify/verify';
 import { clear, debounce, el, put } from './dom';
 import { has, t } from './i18n';
+import { type IconName, icon } from './icons';
+import { singleKeys } from './prefs';
 import { state, valuesFor } from './state';
 import {
   COLOR_PRESETS,
@@ -44,14 +46,14 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
 
   const root = el('div', { class: 'studio' });
 
-  // ---------- Stage (preview, verification, export) ----------
+  // ---------- Stage (preview) and side column (verifier, export) ----------
   const previewImg = el('img', { class: 'qr-img', alt: t('stage.alt'), hidden: true });
-  const emptyText = el('p', { class: 'stage-empty' }, t('stage.empty'));
+  const emptyText = el('p', { class: 'stage-empty' }, icon('create'), el('span', {}, t('stage.empty')));
   const errorText = el('p', { class: 'stage-error', role: 'alert', hidden: true });
   const previewBox = el('div', { class: 'preview-box' }, previewImg, emptyText, errorText);
   const infoLine = el('p', { class: 'stage-info' });
 
-  const mascotImg = el('img', { class: 'mascot', alt: '', width: 64, height: 64 });
+  const mascotImg = el('img', { class: 'mascot', alt: '', width: 56, height: 56 });
   const verifyTitle = el('p', { class: 'verify-title' });
   const verifyDetail = el('p', { class: 'verify-detail' });
   const verifyCauses = el('ul', { class: 'verify-causes' });
@@ -63,42 +65,56 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     el('div', { class: 'verify-body' }, verifyTitle, verifyDetail, verifyCauses, fixButton),
   );
 
-  const sizeSelect = el(
-    'select',
-    { id: 'png-size', onchange: (e: Event) => (state.pngSize = Number((e.target as HTMLSelectElement).value)) },
-    ...PNG_SIZES.map((s) => el('option', { value: String(s), selected: s === state.pngSize }, `${s} px`)),
-  );
-  const btnPng = el(
-    'button',
-    { type: 'button', class: 'btn btn-primary', onclick: () => void exportPng() },
-    t('export.png'),
-  );
-  const btnSvg = el('button', { type: 'button', class: 'btn', onclick: () => exportSvg() }, t('export.svg'));
-  const btnPdf = el('button', { type: 'button', class: 'btn', onclick: () => openPdfDialog() }, t('export.pdf'));
-  const btnCopy = el('button', { type: 'button', class: 'btn', onclick: () => void copyImage() }, t('export.copy'));
-  const btnShare = el('button', { type: 'button', class: 'btn', onclick: () => void shareImage() }, t('export.share'));
+  const sizeGroup = el('div', { class: 'chips chips-small', role: 'radiogroup', 'aria-label': t('export.size') });
+  sizeGroup.style.setProperty('--n', String(PNG_SIZES.length));
+  for (const size of PNG_SIZES) {
+    sizeGroup.append(
+      el('input', {
+        type: 'radio',
+        name: 'pngsize',
+        id: `png-size-${size}`,
+        class: 'chip-input',
+        checked: size === state.pngSize,
+        onchange: () => {
+          state.pngSize = size;
+        },
+      }),
+      el('label', { for: `png-size-${size}`, class: 'chip' }, el('span', {}, String(size))),
+    );
+  }
+  const action = (cls: string, label: string, name: IconName, onclick: () => void) =>
+    el('button', { type: 'button', class: cls, onclick }, icon(name), el('span', {}, label));
+  const btnPng = action('btn btn-primary', t('export.png'), 'png', () => void exportPng());
+  const btnSvg = action('btn', t('export.svg'), 'svg', () => exportSvg());
+  const btnPdf = action('btn', t('export.pdf'), 'pdf', () => openPdfDialog());
+  const btnCopy = action('btn', t('export.copy'), 'copy', () => void copyImage());
+  const btnShare = action('btn', t('export.share'), 'share', () => void shareImage());
   btnShare.hidden = !(typeof navigator.share === 'function' && typeof navigator.canShare === 'function');
   const exportBox = el(
     'section',
     { class: 'export' },
     el('h2', { class: 'section-title' }, t('export.title')),
-    el(
-      'div',
-      { class: 'export-row' },
-      btnPng,
-      el('label', { class: 'inline-field', for: 'png-size' }, t('export.size'), sizeSelect),
-    ),
-    el('div', { class: 'export-row' }, btnSvg, btnPdf, btnCopy, btnShare),
+    el('div', { class: 'btn-grid' }, btnPng, btnSvg, btnPdf),
+    el('div', { class: 'btn-grid' }, btnCopy, btnShare),
+    el('div', { class: 'field' }, el('span', { class: 'label' }, `${t('export.size')} (px)`), sizeGroup),
   );
 
-  const stage = el('aside', { class: 'stage', 'aria-label': t('stage.title') }, previewBox, infoLine, verifyBox);
-  const side = el('div', { class: 'side' }, stage, exportBox);
+  const stage = el('section', { class: 'col col-stage', 'aria-label': t('stage.title') }, previewBox, infoLine);
+  const side = el('aside', { class: 'col col-side' }, verifyBox, exportBox);
 
   // ---------- Controls ----------
-  const kindGroup = el('div', { class: 'chips', role: 'radiogroup', 'aria-label': t('kind.label') });
+  const kindGroup = el('div', { class: 'type-grid', role: 'radiogroup', 'aria-label': t('kind.label') });
   const fieldsHost = el('div', { class: 'fields' });
   const styleHost = el('div', { class: 'style-panel' });
   const frameHost = el('div', { class: 'frame-panel' });
+
+  function selectKind(kind: PayloadKind): void {
+    state.kind = kind;
+    renderFields();
+    renderFrame();
+    refresh();
+    setPanel('content');
+  }
 
   function renderKinds(): void {
     clear(kindGroup);
@@ -112,14 +128,9 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
           class: 'chip-input',
           value: kind,
           checked: state.kind === kind,
-          onchange: () => {
-            state.kind = kind;
-            renderFields();
-            renderFrame();
-            refresh();
-          },
+          onchange: () => selectKind(kind),
         }),
-        el('label', { for: id, class: 'chip' }, t(`kind.${kind}`)),
+        el('label', { for: id, class: 'chip type-tile' }, icon(kind), el('span', {}, t(`kind.${kind}`))),
       );
     }
   }
@@ -285,8 +296,10 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     value: T,
     textKey: (o: T) => string,
     onPick: (o: T) => void,
+    iconOf?: (o: T) => IconName | null,
   ): HTMLElement {
     const group = el('div', { class: 'chips chips-small', role: 'radiogroup', 'aria-label': t(labelKey) });
+    group.style.setProperty('--n', String(options.length <= 5 ? options.length : 3));
     for (const option of options) {
       const id = `${name}-${option}`;
       group.append(
@@ -298,7 +311,12 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
           checked: value === option,
           onchange: () => onPick(option),
         }),
-        el('label', { for: id, class: 'chip' }, t(textKey(option))),
+        el(
+          'label',
+          { for: id, class: iconOf ? 'chip chip-icon' : 'chip' },
+          iconOf?.(option) ? icon(iconOf(option)!) : null,
+          el('span', {}, t(textKey(option))),
+        ),
       );
     }
     return el('div', { class: 'field' }, el('span', { class: 'label' }, t(labelKey)), group);
@@ -349,6 +367,7 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
         s.shape,
         (o) => `shape.${o}`,
         (shape) => setStyle({ shape }),
+        (o) => o,
       ),
       chipRow(
         'eyeFrame',
@@ -357,6 +376,7 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
         s.eyeFrame,
         (o) => `eye.${o}`,
         (eyeFrame) => setStyle({ eyeFrame }),
+        (o) => (o === 'square' ? 'ring' : o === 'rounded' ? 'ringRound' : 'circle'),
       ),
       chipRow(
         'eyeBall',
@@ -365,6 +385,7 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
         s.eyeBall,
         (o) => `eye.${o}`,
         (eyeBall) => setStyle({ eyeBall }),
+        (o) => o,
       ),
       el('div', { class: 'field' }, el('span', { class: 'label' }, t('style.presets')), presets),
       el(
@@ -731,6 +752,7 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     errorText.hidden = !message;
     errorText.textContent = message ?? '';
     infoLine.textContent = '';
+    document.dispatchEvent(new CustomEvent('codifyqr:info', { detail: null }));
     current = null;
     verifyToken++;
     lastVerify = null;
@@ -772,6 +794,11 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     previewImg.hidden = false;
     emptyText.hidden = true;
     errorText.hidden = true;
+    document.dispatchEvent(
+      new CustomEvent('codifyqr:info', {
+        detail: { version: plan.matrix.version, size: plan.matrix.size, ecc: plan.matrix.ecc },
+      }),
+    );
     infoLine.textContent = t('stage.info', {
       version: plan.matrix.version,
       size: plan.matrix.size,
@@ -804,6 +831,7 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
 
   function renderVerify(kind: 'empty' | 'checking' | 'ok' | 'risk' | 'fail'): void {
     verifyBox.dataset.state = kind;
+    document.dispatchEvent(new CustomEvent('codifyqr:status', { detail: { state: kind } }));
     verifyBox.setAttribute('aria-busy', String(kind === 'checking'));
     clear(verifyCauses);
     fixButton.hidden = true;
@@ -1025,23 +1053,152 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     notify(t('export.done'));
   }
 
-  // ---------- Layout ----------
+  // ---------- Layout: type grid, tabs for content, style and frame, and a bottom bar on narrow screens ----------
+  type Panel = 'type' | 'content' | 'style' | 'frame' | 'export';
+  const SUBS = ['content', 'style', 'frame'] as const;
+  let panel: Panel = 'content';
+  let sub: (typeof SUBS)[number] = 'content';
+  const PANEL_ICON: Record<Panel, IconName> = {
+    type: 'create',
+    content: 'content',
+    style: 'style',
+    frame: 'frame',
+    export: 'download',
+  };
+  const panelLabel = (p: Panel): string =>
+    p === 'type'
+      ? t('panel.type')
+      : p === 'content'
+        ? t('panel.content')
+        : p === 'style'
+          ? t('style.title')
+          : p === 'frame'
+            ? t('frame.title')
+            : t('export.title');
+
+  function setPanel(next: Panel): void {
+    panel = next;
+    if ((SUBS as readonly string[]).includes(next)) sub = next as (typeof SUBS)[number];
+    root.dataset.panel = panel;
+    root.dataset.sub = sub;
+    for (const tab of root.querySelectorAll<HTMLElement>('[data-sub-tab]')) {
+      const on = tab.dataset.subTab === sub;
+      tab.setAttribute('aria-selected', String(on));
+      tab.tabIndex = on ? 0 : -1;
+    }
+    for (const button of root.querySelectorAll<HTMLElement>('[data-nav]')) {
+      if (button.dataset.nav === panel) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    }
+  }
+
+  const subTabs = el('div', { class: 'subtabs', role: 'tablist', 'aria-label': t('mode.create') });
+  for (const name of SUBS) {
+    subTabs.append(
+      el(
+        'button',
+        {
+          type: 'button',
+          role: 'tab',
+          class: 'subtab',
+          'data-sub-tab': name,
+          onclick: () => setPanel(name),
+          onkeydown: (e: KeyboardEvent) => {
+            const i = SUBS.indexOf(name);
+            const next =
+              e.key === 'ArrowRight'
+                ? SUBS[(i + 1) % SUBS.length]
+                : e.key === 'ArrowLeft'
+                  ? SUBS[(i + SUBS.length - 1) % SUBS.length]
+                  : null;
+            if (next) {
+              e.preventDefault();
+              setPanel(next);
+              root.querySelector<HTMLElement>(`[data-sub-tab="${next}"]`)?.focus();
+            }
+          },
+        },
+        icon(PANEL_ICON[name]),
+        el('span', {}, panelLabel(name)),
+      ),
+    );
+  }
+
+  const navBar = el('nav', { class: 'panel-nav', 'aria-label': t('mode.create') });
+  for (const name of ['type', 'content', 'style', 'frame', 'export'] as const) {
+    navBar.append(
+      el(
+        'button',
+        { type: 'button', class: 'nav-btn', 'data-nav': name, onclick: () => setPanel(name) },
+        icon(PANEL_ICON[name]),
+        el('span', {}, panelLabel(name)),
+      ),
+    );
+  }
+
   const controls = el(
     'section',
-    { class: 'controls', id: 'editor' },
+    { class: 'col col-controls', id: 'editor' },
     el('h2', { class: 'sr-only' }, t('mode.create')),
-    kindGroup,
-    fieldsHost,
-    el('details', { class: 'panel', open: true }, el('summary', {}, t('style.title')), styleHost),
-    el('details', { class: 'panel' }, el('summary', {}, t('frame.title')), frameHost),
+    el('div', { class: 'panel-type' }, kindGroup),
+    subTabs,
+    el(
+      'div',
+      { class: 'subpanels' },
+      el('div', { class: 'subpanel', role: 'tabpanel', 'data-sub-panel': 'content' }, fieldsHost),
+      el('div', { class: 'subpanel', role: 'tabpanel', 'data-sub-panel': 'style' }, styleHost),
+      el('div', { class: 'subpanel', role: 'tabpanel', 'data-sub-panel': 'frame' }, frameHost),
+    ),
   );
-  root.append(controls, side, pdfDialog);
+  root.append(controls, stage, side, navBar, pdfDialog);
+
+  // ---------- Keyboard shortcuts and status for the page chrome ----------
+  const keys = new AbortController();
+  document.addEventListener(
+    'keydown',
+    (e: KeyboardEvent) => {
+      if (!root.offsetParent || document.querySelector('dialog[open]')) return;
+      const target = e.target as HTMLElement;
+      const typing = target.matches('input, textarea, select, [contenteditable="true"]');
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key === 'Enter') {
+        e.preventDefault();
+        void exportPng();
+      } else if (mod && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPanel('content');
+        root.querySelector<HTMLElement>('.fields input, .fields textarea')?.focus();
+      } else if (!typing && !mod && !e.altKey && singleKeys()) {
+        const index = '1234567890'.indexOf(e.key);
+        const kind = index >= 0 ? PAYLOAD_KINDS[index] : undefined;
+        const key = e.key.toLowerCase();
+        if (kind) {
+          const radio = root.querySelector<HTMLInputElement>(`#kind-${kind}`);
+          if (radio) {
+            radio.checked = true;
+            selectKind(kind);
+          }
+        } else if (key === 'c') setPanel('content');
+        else if (key === 's') setPanel('style');
+        else if (key === 'f') setPanel('frame');
+        else if (key === 'x') {
+          if (!fixButton.hidden) fixButton.click();
+        } else if (key === 'p') void exportPng();
+        else if (key === 'v') exportSvg();
+        else if (key === 'd') openPdfDialog();
+        else if (key === 'y') void copyImage();
+      }
+    },
+    { signal: keys.signal },
+  );
+  Object.assign(root, { dispose: () => keys.abort() });
 
   renderKinds();
   renderFields();
   renderStyle();
   renderFrame();
   renderVerify('empty');
+  setPanel('content');
   refresh();
   return root;
 }

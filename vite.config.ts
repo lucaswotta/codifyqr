@@ -27,11 +27,13 @@ function walk(dir: string): string[] {
 /** Adds the strict CSP to the built page and writes the service worker with the list of built files. */
 function productionShell(): Plugin {
   let outDir = 'dist';
+  let base = '/';
   return {
     name: 'codifyqr-production-shell',
     apply: 'build',
     configResolved(config) {
       outDir = config.build.outDir;
+      base = config.base;
     },
     transformIndexHtml(html) {
       return html.replace(
@@ -46,6 +48,9 @@ function productionShell(): Plugin {
           .map((f) => relative(outDir, f).split('\\').join('/'))
           .filter((f) => f !== 'sw.js' && !f.endsWith('.map') && !f.startsWith('social-preview'))
           .sort();
+        // 404.html is served for any unknown path, so it needs absolute links.
+        const notFound = join(outDir, '404.html');
+        writeFileSync(notFound, readFileSync(notFound, 'utf8').replaceAll('__BASE__', base));
         const hash = createHash('sha256');
         for (const f of files) hash.update(f).update(readFileSync(join(outDir, f)));
         const urls = ['./', ...files.map((f) => `./${f}`)];
