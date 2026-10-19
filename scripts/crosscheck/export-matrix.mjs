@@ -11,7 +11,7 @@ await page.goto(process.env.CODIFYQR_URL ?? 'http://localhost:4173/codifyqr/');
 await page.locator('#f-text-content').fill('https://example.com/styles?id=42&name=Zoë');
 const chip = (t) => page.locator('label.chip', { hasText: new RegExp(`^${t}$`) }).first();
 async function snap(name, size) {
-  await page.locator('#png-size').selectOption(String(size));
+  await page.locator(`label[for="png-size-${size}"]`).click();
   const [d] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'PNG', exact: true }).click(),

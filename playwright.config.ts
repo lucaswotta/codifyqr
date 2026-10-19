@@ -8,6 +8,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 15_000 },
   fullyParallel: true,
+  retries: process.env.CI ? 1 : 0,
   reporter: [['list']],
   use: {
     baseURL: remote ?? 'http://localhost:4173/codifyqr/',

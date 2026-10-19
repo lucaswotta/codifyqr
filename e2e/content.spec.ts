@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { crc16, pixPayload } from '../src/payloads/pix';
-import { chip, decodePng, downloadPng, verifyState } from './helpers';
+import { chip, decodePng, downloadPng, openTab, verifyState } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('./');
@@ -25,11 +25,22 @@ test('Pix: validates, detects the key type, and encodes a payload with a valid C
   expect(decoded!.slice(-4)).toBe(crc16(decoded!.slice(0, -4)));
 });
 
+test('Pix city is optional and becomes BRASIL', async ({ page }) => {
+  await chip(page, 'Pix').click();
+  await page.locator('#f-pix-key').fill('ana@example.com');
+  await page.locator('#f-pix-name').fill('Ana');
+  await expect(page.locator('#f-pix-city')).not.toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('.verify')).toHaveAttribute('data-state', 'ok');
+  const decoded = await decodePng(page, await downloadPng(page));
+  expect(decoded).toBe(pixPayload({ key: 'ana@example.com', name: 'ANA', city: 'BRASIL' }));
+});
+
 test('Pix content is never written to storage', async ({ page }) => {
   await chip(page, 'Pix').click();
   await page.locator('#f-pix-key').fill('ana@example.com');
   await page.locator('#f-pix-name').fill('Ana');
   await page.locator('#f-pix-city').fill('Recife');
+  await openTab(page, 'Style');
   await page.getByRole('button', { name: 'Save current style' }).click();
   const dump = await page.evaluate(
     () => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }) + location.href,
@@ -93,7 +104,7 @@ test('too much content shows a clear message instead of failing', async ({ page 
 
 test('frames wrap the code and the PNG still reads', async ({ page }) => {
   await page.locator('#f-text-content').fill('https://example.com/menu');
-  await page.locator('summary', { hasText: 'Frame' }).click();
+  await openTab(page, 'Frame');
   for (const frame of ['Sticker', 'Business card', 'Table card', 'Wi-Fi sign', 'Pix payment']) {
     await chip(page, frame).click();
     await page.locator('#frame-headline').fill('Scan to see the menu');
@@ -103,6 +114,7 @@ test('frames wrap the code and the PNG still reads', async ({ page }) => {
 
 test('SVG download is a standalone vector file with the logo embedded', async ({ page }) => {
   await page.locator('#f-text-content').fill('https://example.com/vector');
+  await openTab(page, 'Style');
   await page.locator('#logo-file').setInputFiles('e2e/fixtures/logo.png');
   await expect(page.getByRole('button', { name: 'Remove logo' })).toBeVisible();
   const [download] = await Promise.all([

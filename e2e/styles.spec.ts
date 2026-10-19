@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { chip, decodePng, downloadPng, fillContent, verifyState } from './helpers';
+import { chip, decodePng, downloadPng, fillContent, openTab, verifyState } from './helpers';
 
 const TEXT = 'https://example.com/styles?id=42&name=Zoë';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('./');
   await fillContent(page, TEXT);
+  await openTab(page, 'Style');
 });
 
 test('every module shape and eye style exports a readable PNG', async ({ page }) => {

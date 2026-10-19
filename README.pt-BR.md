@@ -14,6 +14,7 @@ CodifyQR é um gerador de QR Code gratuito e de código aberto que roda inteiro 
 - **Exportação**: PNG de 512 a 4096 px, SVG, PDF com o tamanho de impressão em centímetros e aviso quando os módulos ficam abaixo de 0,4 mm, copiar para a área de transferência, compartilhar.
 - **Lote**: cole linhas ou importe um CSV (conteúdo e nome de arquivo opcional), até 500 linhas, baixado como ZIP de arquivos PNG ou SVG.
 - **Leitor**: lê pela câmera ou por imagem e mostra o conteúdo. Nunca abre um link sozinho e avisa sobre encurtadores, domínios com caracteres parecidos, endereços IP, `http`, credenciais embutidas e conteúdo `javascript:` ou `data:`.
+- **Ajuda e atalhos**: um guia embutido para quem usa pela primeira vez e atalhos de teclado para tipos, painéis, exportações, tema e idioma. Os atalhos de uma tecla podem ser desligados.
 - **PWA offline** com temas claro e escuro em inglês, português (Brasil) e espanhol.
 
 | Estilos | Molduras |
@@ -60,7 +61,7 @@ A CI (`.github/workflows/ci.yml`) roda a cada push:
 
 - Lint e formatação com Biome, TypeScript em modo estrito.
 - Testes unitários (Vitest) e ponta a ponta (Playwright, Chrome), incluindo imagens exportadas decodificadas de volta ao texto, uso offline, política de segurança de conteúdo, traduções e checagens de acessibilidade com axe (WCAG 2.2 AA, sem violações sérias).
-- Orçamento do primeiro carregamento: 60 KB gzip (`scripts/size-budget.mjs`; hoje cerca de 35 KB).
+- Orçamento do primeiro carregamento: 80 KB gzip, fonte incluída (`scripts/size-budget.mjs`; hoje cerca de 68 KB).
 - Metas do Lighthouse: desempenho de pelo menos 95, acessibilidade, boas práticas e SEO em 100 (`scripts/lighthouse-check.mjs`).
 
 ## Limitações

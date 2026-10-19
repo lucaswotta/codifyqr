@@ -14,16 +14,18 @@ mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch({ channel: 'chrome' });
 const chip = (page, text) => page.locator('label.chip', { hasText: new RegExp(`^${text}$`) }).first();
+const tab = (page, name) => page.getByRole('tab', { name }).click();
 const waitState = (page, state) =>
   page.waitForFunction(
-    (s) =>
-      document.querySelector('.verify')?.dataset.state === s ||
-      (s === 'risk|fail' && ['risk', 'fail'].includes(document.querySelector('.verify')?.dataset.state)),
+    (s) => {
+      const now = document.querySelector('.verify')?.dataset.state;
+      return now === s || (s === 'risk|fail' && ['risk', 'fail'].includes(now));
+    },
     state,
     { timeout: 20000 },
   );
 
-async function newPage(scheme = 'light', viewport = { width: 1200, height: 800 }) {
+async function newPage(scheme = 'light', viewport = { width: 1440, height: 900 }) {
   const ctx = await browser.newContext({ viewport, colorScheme: scheme, locale: 'en-US', acceptDownloads: true });
   const page = await ctx.newPage();
   await page.goto(BASE);
@@ -32,24 +34,22 @@ async function newPage(scheme = 'light', viewport = { width: 1200, height: 800 }
 
 // Hero screenshots, both themes.
 for (const scheme of ['light', 'dark']) {
-  const page = await newPage(scheme, { width: 1200, height: 820 });
+  const page = await newPage(scheme);
   await page.locator('#f-text-content').fill('https://lucaswotta.github.io/codifyqr/');
-  await chip(page, 'Rounded').click();
-  await page.locator('#c-fg').fill('#171714');
   await waitState(page, 'ok');
   await page.mouse.move(0, 0);
   await page.screenshot({ path: `${OUT}/hero-${scheme}.png` });
   await page.context().close();
 }
 
-// Read check states side by side.
+// Read check states, stacked.
 {
   const page = await newPage('light');
-  const shots = [];
   const verify = page.locator('.verify');
   await page.locator('#f-text-content').fill('https://example.com/menu');
   await waitState(page, 'ok');
   await verify.screenshot({ path: `${TMP}/v-ok.png` });
+  await tab(page, 'Style');
   await page.locator('#c-fg').fill('#8a8a8a');
   await waitState(page, 'risk|fail');
   await verify.screenshot({ path: `${TMP}/v-risk.png` });
@@ -64,7 +64,7 @@ for (const scheme of ['light', 'dark']) {
 {
   const page = await newPage('light');
   await page.locator('#f-text-content').fill('https://example.com/styles');
-  await page.locator('#png-size').selectOption('512');
+  await page.locator('label[for="png-size-512"]').click();
   const save = async (name) => {
     const [d] = await Promise.all([
       page.waitForEvent('download'),
@@ -76,8 +76,9 @@ for (const scheme of ['light', 'dark']) {
     await page.locator('[aria-label="Eye frame"] label.chip', { hasText: new RegExp(`^${frame}$`) }).click();
     await page.locator('[aria-label="Eye center"] label.chip', { hasText: new RegExp(`^${ball}$`) }).click();
   };
-  await page.locator('#c-fg').fill('#171714');
-  await page.locator('#c-bg').fill('#f3f0e7');
+  await tab(page, 'Style');
+  await page.locator('#c-fg').fill('#000000');
+  await page.locator('#c-bg').fill('#f5f4ef');
   const looks = [
     ['Square', 'Square', 'Square'],
     ['Rounded', 'Rounded', 'Rounded'],
@@ -98,11 +99,10 @@ for (const scheme of ['light', 'dark']) {
   await page.locator('#logo-file').setInputFiles('brand/logo-symbol.png');
   await page.getByRole('button', { name: 'Remove logo' }).waitFor();
   await save('g5');
-  await page.locator('#c-fg').fill('#171714');
-  await chip(page, 'None').click();
-  await page.locator('#logo-file').setInputFiles([]);
   await page.getByRole('button', { name: 'Remove logo' }).click();
-  await page.locator('summary', { hasText: 'Frame' }).click();
+  await chip(page, 'None').click();
+  await page.locator('#c-fg').fill('#000000');
+  await tab(page, 'Frame');
   for (const [name, label] of [
     ['sticker', 'Sticker'],
     ['card', 'Business card'],
@@ -118,7 +118,7 @@ for (const scheme of ['light', 'dark']) {
 
 // Demo animation: one pass through the main features.
 {
-  const page = await newPage('light', { width: 1100, height: 700 });
+  const page = await newPage('light', { width: 1280, height: 800 });
   const frames = [];
   const shot = async (seconds) => {
     const file = `${TMP}/d${String(frames.length).padStart(2, '0')}.png`;
@@ -133,12 +133,13 @@ for (const scheme of ['light', 'dark']) {
   await input.pressSequentially('qr.example/menu');
   await waitState(page, 'ok');
   await shot(1.6);
+  await tab(page, 'Style');
   await chip(page, 'Rounded').click();
   await page.locator('[aria-label="Eye frame"] label.chip', { hasText: /^Rounded$/ }).click();
   await page.locator('[aria-label="Eye center"] label.chip', { hasText: /^Circle$/ }).click();
   await page.waitForTimeout(500);
   await shot(1.2);
-  await page.locator('[data-preset="ink"]').click();
+  await page.locator('[data-preset="ocean"]').click();
   await waitState(page, 'ok');
   await shot(1.4);
   await page.locator('#logo-file').setInputFiles('brand/logo-symbol.png');
@@ -153,6 +154,7 @@ for (const scheme of ['light', 'dark']) {
   await page.locator('.verify .btn').click();
   await waitState(page, 'ok');
   await shot(1.8);
+  await tab(page, 'Content');
   await chip(page, 'Pix').click();
   await page.locator('#f-pix-key').fill('529.982.247-25');
   await page.locator('#f-pix-name').fill('Ana Conceição');
@@ -176,7 +178,7 @@ ff([
   '-i',
   `${TMP}/v-fail.png`,
   '-filter_complex',
-  '[0]scale=420:-1[a];[1]scale=420:-1[b];[2]scale=420:-1[c];[a][b][c]vstack=inputs=3:shortest=0',
+  '[0]scale=420:-1[a];[1]scale=420:-1[b];[2]scale=420:-1[c];[a][b][c]vstack=inputs=3',
   `${OUT}/read-check.png`,
 ]);
 ff([
@@ -194,6 +196,8 @@ ff([
 ff([
   '-f',
   'concat',
+  '-safe',
+  '0',
   '-i',
   `${TMP}/frames.txt`,
   '-vf',

@@ -99,7 +99,7 @@ export function importStyleJson(text: string): QrStyle | null {
 
 export const COLOR_PRESETS: readonly { id: string; fg: string; fg2: string | null; bg: string | null }[] = [
   { id: 'ink', fg: '#111111', fg2: null, bg: '#ffffff' },
-  { id: 'press', fg: '#b12b22', fg2: null, bg: '#f3f0e7' },
+  { id: 'press', fg: '#C8231A', fg2: null, bg: '#F5F4EF' },
   { id: 'ocean', fg: '#0b3c8a', fg2: '#0e7490', bg: '#ffffff' },
   { id: 'clay', fg: '#7c2d12', fg2: '#b45309', bg: '#fff7ed' },
   { id: 'violet', fg: '#4c1d95', fg2: '#be185d', bg: '#ffffff' },

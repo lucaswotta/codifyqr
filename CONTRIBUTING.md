@@ -17,7 +17,7 @@ pnpm build && pnpm test:e2e
 
 - Conventional Commits in English: `type(scope): summary`, imperative, lower case, up to 50 characters.
 - One change per pull request. Add a test with every bug fix.
-- No new runtime dependency without a reason in the pull request. The first load budget is 60 KB gzip (`node scripts/size-budget.mjs dist`).
+- No new runtime dependency without a reason in the pull request. The first load budget is 80 KB gzip, font included (`node scripts/size-budget.mjs dist`).
 - The page must make no network request after it loads. The content security policy (`connect-src 'none'`) enforces this; do not loosen it.
 - Content that can be private (Pix keys, Wi-Fi passwords, contact data) never goes to storage, the URL or a log.
 

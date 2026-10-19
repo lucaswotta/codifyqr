@@ -14,6 +14,7 @@ CodifyQR is a free, open source QR code generator that runs entirely in the brow
 - **Exports**: PNG at 512 to 4096 px, SVG, PDF with the print size in centimeters and a warning when modules fall under 0.4 mm, copy to clipboard, share.
 - **Batch**: paste lines or import a CSV (content, optional file name), up to 500 rows, downloaded as a ZIP of PNG or SVG files.
 - **Reader**: scans with the camera or from an image and shows what the code contains. It never opens a link by itself and warns about URL shorteners, look-alike domains, raw IP addresses, `http`, embedded credentials, and `javascript:` or `data:` content.
+- **Help and shortcuts**: a built-in guide for first-time users and keyboard shortcuts for types, panels, exports, theme and language. Single-key shortcuts can be switched off.
 - **Offline PWA** with light and dark themes in English, Portuguese (Brazil) and Spanish.
 
 | Styles | Frames |
@@ -60,7 +61,7 @@ CI (`.github/workflows/ci.yml`) runs on every push:
 
 - Biome lint and format, TypeScript strict mode.
 - Unit tests (Vitest) and end to end tests (Playwright, Chrome), including exported images decoded back to their text, offline use, the content security policy, translations, and axe accessibility checks (WCAG 2.2 AA, no serious violations).
-- First load budget: 60 KB gzip (`scripts/size-budget.mjs`; currently about 35 KB).
+- First load budget: 80 KB gzip, font included (`scripts/size-budget.mjs`; currently about 68 KB).
 - Lighthouse thresholds: performance at least 95, accessibility, best practices and SEO at 100 (`scripts/lighthouse-check.mjs`).
 
 ## Limitations

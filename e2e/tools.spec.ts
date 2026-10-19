@@ -26,7 +26,7 @@ test('batch turns pasted lines into a ZIP with safe unique names', async ({ page
       'https://example.com/a,Shop A\nhttps://example.com/b,Shop A\nexample.com/c\n"https://example.com/d?x=1,2",../evil',
     );
   await expect(page.getByText('4 codes')).toBeVisible();
-  await page.locator('#batch-size').selectOption('512');
+  await page.locator('label[for="batch-size-512"]').click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Create ZIP' }).click(),
@@ -45,7 +45,7 @@ test('batch accepts a CSV file and SVG output', async ({ page }) => {
     buffer: Buffer.from('content;name\nhttps://example.com/1;one\nhttps://example.com/2;two\n'),
   });
   await expect(page.getByText('2 codes')).toBeVisible();
-  await page.locator('#batch-format').selectOption('svg');
+  await page.locator('label[for="batch-format-svg"]').click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Create ZIP' }).click(),

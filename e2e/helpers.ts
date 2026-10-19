@@ -54,3 +54,11 @@ export async function downloadPng(page: Page): Promise<Buffer> {
   const path = await download.path();
   return (await import('node:fs/promises')).readFile(path);
 }
+
+/** Opens one of the inner tabs of the editor: Content, Style or Frame (English labels). */
+export const openTab = (page: Page, name: 'Content' | 'Style' | 'Frame') => page.getByRole('tab', { name }).click();
+
+export async function chooseLanguage(page: Page, code: 'EN' | 'PT' | 'ES'): Promise<void> {
+  await page.locator('.menu-btn').click();
+  await page.locator('.menu-item', { hasText: new RegExp(`^${code}`) }).click();
+}

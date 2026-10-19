@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- New interface: a three column workbench that fills the screen and never scrolls the page; the preview is pinned on narrow screens with a bottom bar. Pure black and paper palette with one signal red, Geist font bundled with the app, Lucide icons plus the Pix and WhatsApp marks.
+- Help dialog with steps, print tips and a glossary; complete keyboard shortcuts with a switch for single-key ones.
+- The Pix city is optional and becomes BRASIL when empty.
+- Language menu with the full language names; PNG size and batch options as segmented controls.
+- `404.html` page with the brand.
+
 ## 2.0.0 (2026-10-19)
 
 Rewrite. The project changed from a one-page tool to a PWA with its own QR engine.
