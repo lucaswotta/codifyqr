@@ -13,7 +13,7 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
     'aria-label': t('scan.title'),
   });
   const canvas = document.createElement('canvas');
-  const resultHost = el('div', { class: 'scan-result', 'aria-live': 'polite' });
+  const resultHost = el('div', { class: 'scan-result', 'data-empty': t('scan.empty'), 'aria-live': 'polite' });
   const previewBox = el('div', { class: 'preview-box scan-preview' });
   const placeholder = el('p', { class: 'stage-empty' }, icon('scan'), el('span', {}, t('scan.lead')));
   let shownUrl: string | null = null;

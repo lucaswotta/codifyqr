@@ -1015,6 +1015,26 @@ textarea:focus-visible {
   overflow: auto;
 }
 
+/* Empty columns say what will fill them; on narrow screens the stacked panels stay compact. */
+.rows:empty::before,
+.scan-result:empty::before {
+  content: attr(data-empty);
+  display: block;
+  padding: 16px;
+  color: var(--muted);
+}
+
+.scan-result:empty::before {
+  padding: 0;
+}
+
+@media (max-width: 860px) {
+  .rows:empty::before,
+  .scan-result:empty::before {
+    display: none;
+  }
+}
+
 .rows {
   list-style: none;
   margin: 0;
@@ -1070,10 +1090,6 @@ textarea:focus-visible {
 .scan-result {
   display: grid;
   gap: 10px;
-}
-
-.scan-result:empty {
-  display: none;
 }
 
 .scan-text {

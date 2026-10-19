@@ -22,7 +22,7 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
   const count = el('p', { class: 'field-note', id: 'batch-count', 'aria-live': 'polite' });
   const progress = el('progress', { class: 'progress', max: 1, value: 0, hidden: true });
   const status = el('p', { class: 'field-note', role: 'status', 'aria-live': 'polite' });
-  const list = el('ol', { class: 'rows', 'aria-label': t('batch.rows', { n: 0 }) });
+  const list = el('ol', { class: 'rows', 'data-empty': t('batch.empty'), 'aria-label': t('batch.rows', { n: 0 }) });
   let format: 'png' | 'svg' = 'png';
   let size = 1024;
 
