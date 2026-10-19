@@ -1,5 +1,5 @@
 import { contrastRatio, luminance, mix, parseHex } from '../qr/color';
-import { MAX_LOGO_RATIO, type QrStyle } from '../qr/style';
+import { LOGO_HEADROOM, MAX_LOGO_RATIO, type QrStyle } from '../qr/style';
 import type { QrPlan } from '../qr/svg';
 
 export type CauseId = 'contrast' | 'inverted' | 'logo' | 'margin' | 'gradient' | 'shape' | 'dense' | 'mismatch';
@@ -37,7 +37,7 @@ export function staticCauses(style: QrStyle, plan: QrPlan): Cause[] {
   if (style.logo) {
     const max = MAX_LOGO_RATIO[plan.matrix.ecc];
     if (plan.logoClamped) causes.push({ id: 'logo', level: 'risk' });
-    else if (plan.logoRatio > max * 0.85) causes.push({ id: 'logo', level: 'risk' });
+    else if (plan.logoRatio > max * LOGO_HEADROOM) causes.push({ id: 'logo', level: 'risk' });
   }
   if (style.margin < 2) causes.push({ id: 'margin', level: 'risk' });
   if (plan.matrix.version > 20) causes.push({ id: 'dense', level: 'risk' });

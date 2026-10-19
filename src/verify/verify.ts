@@ -59,7 +59,7 @@ export async function verifyQr(text: string, style: QrStyle): Promise<VerifyResu
   if (mismatch) causes.push({ id: 'mismatch', level: 'fail' });
 
   const [small, medium, large] = reads as [boolean, boolean, boolean];
-  if (!small && (medium || large)) {
+  if (!small && (medium || large) && causes.length === 0) {
     const styled = style.shape !== 'square' || style.eyeFrame !== 'square' || style.eyeBall !== 'square';
     const id = styled ? 'shape' : 'dense';
     if (!causes.some((c) => c.id === id)) causes.push({ id, level: 'risk' });

@@ -71,3 +71,13 @@ describe('renderQrSvg', () => {
     expect(pathLength(withLogo)).toBeLessThan(pathLength(without));
   });
 });
+
+describe('logo headroom', () => {
+  it('picks a level that leaves room, so the default logo is not flagged', async () => {
+    const { staticCauses } = await import('../src/verify/analysis');
+    const style: QrStyle = { ...DEFAULT_STYLE, logo: { href: 'data:image/png;base64,AAAA', ratio: 0.22 } };
+    const plan = planQr('https://example.com/some/longer/path?with=query', style);
+    expect(plan.matrix.ecc).not.toBe('M');
+    expect(staticCauses(style, plan).map((c) => c.id)).not.toContain('logo');
+  });
+});

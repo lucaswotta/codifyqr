@@ -39,13 +39,11 @@ test('batch turns pasted lines into a ZIP with safe unique names', async ({ page
 test('batch accepts a CSV file and SVG output', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('tab', { name: 'Batch' }).click();
-  await page
-    .locator('#batch-file')
-    .setInputFiles({
-      name: 'codes.csv',
-      mimeType: 'text/csv',
-      buffer: Buffer.from('content;name\nhttps://example.com/1;one\nhttps://example.com/2;two\n'),
-    });
+  await page.locator('#batch-file').setInputFiles({
+    name: 'codes.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('content;name\nhttps://example.com/1;one\nhttps://example.com/2;two\n'),
+  });
   await expect(page.getByText('2 codes')).toBeVisible();
   await page.locator('#batch-format').selectOption('svg');
   const [download] = await Promise.all([

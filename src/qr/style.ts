@@ -52,6 +52,10 @@ export const DEFAULT_STYLE: QrStyle = {
 /** Largest cleared square, as a fraction of the side, that each level can recover with some margin. */
 export const MAX_LOGO_RATIO: Record<Ecc, number> = { L: 0.16, M: 0.22, Q: 0.28, H: 0.32 };
 
+/** Share of the limit a logo may use before the read check calls it risky. */
+export const LOGO_HEADROOM = 0.85;
+
+/** Lowest level that holds the logo with headroom to spare. */
 export function minEccForLogoRatio(ratio: number): Ecc {
-  return ECC_LEVELS.find((level) => MAX_LOGO_RATIO[level] >= ratio) ?? 'H';
+  return ECC_LEVELS.find((level) => MAX_LOGO_RATIO[level] * LOGO_HEADROOM >= ratio) ?? 'H';
 }
