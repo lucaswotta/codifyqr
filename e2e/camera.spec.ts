@@ -1,39 +1,42 @@
-import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { encodeText } from '../src/qr/encoder';
-import { rasterize } from '../tests/helpers';
 
 const DIR = 'test-results/camera';
 const VIDEO = `${process.cwd()}/${DIR}/qr.y4m`;
 const TEXT = 'https://example.com/camera?ok=1';
+const W = 640;
+const H = 480;
+const WHITE = 235;
+const BLACK = 16;
+
+/** Writes a few frames of a QR code as a Y4M video, the format Chrome reads as a fake camera. */
+function writeVideo(): void {
+  const matrix = encodeText(TEXT);
+  const scale = 10;
+  const quiet = 4;
+  const side = (matrix.size + quiet * 2) * scale;
+  const x0 = Math.floor((W - side) / 2);
+  const y0 = Math.floor((H - side) / 2);
+  const y = new Uint8Array(W * H).fill(WHITE);
+  for (let row = 0; row < matrix.size; row++) {
+    for (let col = 0; col < matrix.size; col++) {
+      if (!matrix.get(col, row)) continue;
+      for (let dy = 0; dy < scale; dy++) {
+        for (let dx = 0; dx < scale; dx++)
+          y[(y0 + (quiet + row) * scale + dy) * W + x0 + (quiet + col) * scale + dx] = BLACK;
+      }
+    }
+  }
+  const chroma = new Uint8Array((W / 2) * (H / 2)).fill(128);
+  const header = Buffer.from(`YUV4MPEG2 W${W} H${H} F10:1 Ip A1:1 C420jpeg\n`);
+  const frame = Buffer.concat([Buffer.from('FRAME\n'), y, chroma, chroma]);
+  writeFileSync(VIDEO, Buffer.concat([header, ...Array.from({ length: 30 }, () => frame)]));
+}
 
 test.beforeAll(() => {
   mkdirSync(DIR, { recursive: true });
-  const { data, width } = rasterize(encodeText(TEXT), 8, 4);
-  writeFileSync(`${DIR}/qr.rgba`, data);
-  execFileSync('ffmpeg', [
-    '-loglevel',
-    'error',
-    '-y',
-    '-f',
-    'rawvideo',
-    '-pix_fmt',
-    'rgba',
-    '-video_size',
-    `${width}x${width}`,
-    '-framerate',
-    '10',
-    '-i',
-    `${DIR}/qr.rgba`,
-    '-frames:v',
-    '30',
-    '-vf',
-    'scale=480:480:flags=neighbor,pad=640:480:80:0:color=white',
-    '-pix_fmt',
-    'yuv420p',
-    VIDEO,
-  ]);
+  writeVideo();
 });
 
 // A fake camera that films a real QR code, so the live decoding path runs end to end.

@@ -2,7 +2,7 @@
 
 ## Setup
 
-Requirements: Node 22 or newer, pnpm 12 (`corepack enable` picks the version from `package.json`), and Google Chrome and ffmpeg for the end to end tests (the camera test films a generated QR code).
+Requirements: Node 22 or newer, pnpm 12 (`corepack enable` picks the version from `package.json`), and Google Chrome for the end to end tests (the camera test films a generated QR code with Chrome's fake camera).
 
 ```sh
 pnpm install
