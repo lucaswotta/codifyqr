@@ -153,6 +153,15 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
         'div',
         { class: 'btn-grid' },
         copyBtn,
+        el(
+          'button',
+          {
+            type: 'button',
+            class: 'btn',
+            onclick: () => document.dispatchEvent(new CustomEvent('codifyqr:load', { detail: text })),
+          },
+          t('scan.edit'),
+        ),
         info.url
           ? el(
               'a',
@@ -223,6 +232,19 @@ export function createReader(notify: (message: string, kind?: 'info' | 'error') 
     el('section', { class: 'col col-stage', 'aria-label': t('scan.title') }, previewBox),
     el('aside', { class: 'col col-side' }, resultHost),
   );
+  const onPaste = (e: ClipboardEvent) => {
+    if (!section.isConnected) {
+      document.removeEventListener('paste', onPaste);
+      return;
+    }
+    if (section.hidden || document.querySelector('dialog[open]')) return;
+    const f = Array.from(e.clipboardData?.files ?? []).find((item) => item.type.startsWith('image/'));
+    if (f) {
+      e.preventDefault();
+      void readImage(f);
+    }
+  };
+  document.addEventListener('paste', onPaste);
   // Release the camera when the tool is hidden or the page goes away.
   window.addEventListener('pagehide', stopCamera);
   new MutationObserver(() => section.hidden && stopCamera()).observe(section, {

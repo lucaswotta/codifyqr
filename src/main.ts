@@ -358,6 +358,10 @@ function render(): void {
   document.addEventListener('codifyqr:info', onInfo);
   cleanups.push(() => document.removeEventListener('codifyqr:info', onInfo));
 
+  const onLoad = () => void showMode('create');
+  document.addEventListener('codifyqr:load', onLoad);
+  cleanups.push(() => document.removeEventListener('codifyqr:load', onLoad));
+
   const onKeys = (e: KeyboardEvent) => {
     if (document.querySelector('dialog[open]')) return;
     const target = e.target as HTMLElement;
