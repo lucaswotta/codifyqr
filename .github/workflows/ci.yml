@@ -39,7 +39,7 @@ jobs:
           pnpm dlx lighthouse@13.5.0 http://localhost:4180/ --chrome-flags="--headless=new --no-sandbox" \
             --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=lighthouse.json --quiet
           node scripts/lighthouse-check.mjs lighthouse.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-traces
