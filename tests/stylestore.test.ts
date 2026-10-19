@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { exportStyleJson, importStyleJson, sanitizeStyle, styleFromHash, styleToHash } from '../src/app/stylestore';
+import {
+  exportStyleJson,
+  importStyleJson,
+  sanitizeStyle,
+  styleFromHash,
+  styleToHash,
+  toBase64,
+} from '../src/app/stylestore';
 import { DEFAULT_STYLE } from '../src/qr/style';
 
 describe('sanitizeStyle', () => {
@@ -62,5 +69,12 @@ describe('style transport', () => {
     expect(importStyleJson(exportStyleJson(style))).toEqual(style);
     expect(importStyleJson('{"style":{}}')).toBeNull();
     expect(importStyleJson('nope')).toBeNull();
+  });
+
+  it('encodes and preserves large SVG logos without overflowing the call stack', () => {
+    const largeSvg = `<svg xmlns="http://www.w3.org/2000/svg"><!-- ${'x'.repeat(600_000)} --></svg>`;
+    const href = `data:image/svg+xml;base64,${toBase64(largeSvg)}`;
+    const style = { ...DEFAULT_STYLE, logo: { href, ratio: 0.22 } };
+    expect(importStyleJson(exportStyleJson(style))?.logo?.href).toBe(href);
   });
 });
