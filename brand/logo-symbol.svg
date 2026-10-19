@@ -1,2 +1,2 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-<title id="title">CodifyQR</title><rect width="512" height="512" fill="#171714"/><path fill="#F3F0E7" fill-rule="evenodd" d="M72 72h368v368H72zm64 64v240h240V136z"/><path fill="#B12B22" d="M200 200h112v112H200zM312 312h128v128H312z"/><path fill="#F3F0E7" d="M344 344h32v32h-32z"/></svg>
+<title id="title">CodifyQR</title><rect width="512" height="512" fill="#000000"/><path fill="#F5F4EF" fill-rule="evenodd" d="M72 72h368v368H72zm64 64v240h240V136z"/><path fill="#C8231A" d="M200 200h112v112H200zM312 312h128v128H312z"/><path fill="#F5F4EF" d="M344 344h32v32h-32z"/></svg>

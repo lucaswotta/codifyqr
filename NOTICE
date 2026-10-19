@@ -4,3 +4,12 @@ QR Code generator library (Project Nayuki)
 Copyright (c) Project Nayuki. MIT License.
 https://www.nayuki.io/page/qr-code-generator-library
 The encoder in src/qr/encoder.ts follows this algorithm, rewritten in TypeScript.
+
+Lucide icons (ISC License), https://lucide.dev
+Copyright (c) 2026 Lucide Icons and Contributors. Generic interface icons in src/app/icons.ts.
+
+Simple Icons (CC0 1.0), https://simpleicons.org
+The WhatsApp and Pix marks in src/app/icons.ts. The marks are trademarks of their owners and are used only to identify the content type.
+
+Geist (SIL Open Font License 1.1), https://github.com/vercel/geist-font
+Copyright 2024 The Geist Project Authors. Font file and license in src/assets/fonts.
