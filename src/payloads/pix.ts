@@ -13,9 +13,10 @@ const tlv = (id: string, value: string): string => `${id}${String(value.length).
 
 /** CRC16/CCITT-FALSE as required by the BR Code specification. */
 export function crc16(text: string): string {
+  const bytes = new TextEncoder().encode(text);
   let crc = 0xffff;
-  for (let i = 0; i < text.length; i++) {
-    crc ^= text.charCodeAt(i) << 8;
+  for (const b of bytes) {
+    crc ^= b << 8;
     for (let bit = 0; bit < 8; bit++) crc = crc & 0x8000 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
   }
   return crc.toString(16).toUpperCase().padStart(4, '0');
