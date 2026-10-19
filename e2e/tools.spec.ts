@@ -53,10 +53,11 @@ test('batch accepts a CSV file and SVG output', async ({ page }) => {
   expect(zipEntries(await readFile(await download.path()))).toEqual(['one.svg', 'two.svg']);
 });
 
-test('the reader decodes an image and warns about risky links', async ({ page }) => {
+test('the reader decodes an image, warns about risky links, and loads content into Create', async ({ page }) => {
   await page.goto('./');
   await fillContent(page, 'https://bit.ly/3abcdef');
   const png = await downloadPng(page);
+  await fillContent(page, 'https://example.com/other');
   await page.getByRole('tab', { name: 'Scan' }).click();
   await page.locator('#scan-file').setInputFiles({ name: 'code.png', mimeType: 'image/png', buffer: png });
   await expect(page.locator('.scan-text')).toHaveText('https://bit.ly/3abcdef');
@@ -64,6 +65,9 @@ test('the reader decodes an image and warns about risky links', async ({ page })
   const open = page.getByRole('link', { name: 'Open anyway' });
   await expect(open).toHaveAttribute('rel', /noopener/);
   await expect(open).toHaveAttribute('target', '_blank');
+  await page.getByRole('button', { name: 'Edit in Create' }).click();
+  await expect(page.getByRole('tab', { name: 'Create', selected: true })).toBeVisible();
+  await expect(page.locator('#f-text-content')).toHaveValue('https://bit.ly/3abcdef');
 });
 
 test('the reader shows Pix and never offers to open non-web content', async ({ page }) => {

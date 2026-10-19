@@ -1231,6 +1231,16 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     },
     { signal: keys.signal },
   );
+  document.addEventListener(
+    'codifyqr:load',
+    (e: Event) => {
+      valuesFor('text').content = (e as CustomEvent<string>).detail;
+      const radio = root.querySelector<HTMLInputElement>('#kind-text');
+      if (radio) radio.checked = true;
+      selectKind('text');
+    },
+    { signal: keys.signal },
+  );
   Object.assign(root, { dispose: () => keys.abort() });
 
   renderKinds();
