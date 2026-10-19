@@ -70,6 +70,25 @@ test('the reader decodes an image, warns about risky links, and loads content in
   await expect(page.locator('#f-text-content')).toHaveValue('https://bit.ly/3abcdef');
 });
 
+test('the reader decodes an image pasted from the clipboard only while Scan is open', async ({ page }) => {
+  await page.goto('./');
+  await fillContent(page, 'https://example.com/pasted');
+  const png = (await downloadPng(page)).toString('base64');
+  const paste = () =>
+    page.evaluate((b64) => {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const data = new DataTransfer();
+      data.items.add(new File([bytes], 'clip.png', { type: 'image/png' }));
+      document.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+    }, png);
+  await paste();
+  await expect(page.locator('.scan-text')).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Scan' }).click();
+  await expect(page.locator('#scan-file')).toBeAttached();
+  await paste();
+  await expect(page.locator('.scan-text')).toHaveText('https://example.com/pasted');
+});
+
 test('the reader shows Pix and never offers to open non-web content', async ({ page }) => {
   await page.goto('./');
   await chip(page, 'Wi-Fi').click();
