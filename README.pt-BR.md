@@ -203,7 +203,7 @@ A CI roda em toda branch e bloqueia o deploy quando algo falha:
 
 ## Roteiro
 
-As ideias abertas, com critérios de aceite, estão nas [issues](https://github.com/lucaswotta/codifyqr/issues): PDF vetorial para códigos simples, segmentos mistos numérico/alfanumérico/byte para reduzir os códigos, Web Worker para o lote, uma visão copiável do texto codificado e mais idiomas. As boas primeiras tarefas estão marcadas.
+As ideias abertas, com critérios de aceite, estão nas [issues](https://github.com/lucaswotta/codifyqr/issues): PDF vetorial para códigos simples, segmentos mistos numérico/alfanumérico/byte para reduzir os códigos, Web Worker para o lote e uma visão copiável do texto codificado. As boas primeiras tarefas estão marcadas. Para adicionar um idioma, abra uma issue ou um pull request (veja [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Contribuir
 
