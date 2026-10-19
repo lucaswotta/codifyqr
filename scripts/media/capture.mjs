@@ -36,9 +36,47 @@ async function newPage(scheme = 'light', viewport = { width: 1440, height: 900 }
 for (const scheme of ['light', 'dark']) {
   const page = await newPage(scheme);
   await page.locator('#f-text-content').fill('https://lucaswotta.github.io/codifyqr/');
+  await tab(page, 'Style');
+  await chip(page, 'Rounded').click();
+  await page.locator('[data-preset="ocean"]').click();
+  await page.locator('#logo-file').setInputFiles('brand/logo-symbol.png');
+  await page.locator('#r-logo').waitFor();
   await waitState(page, 'ok');
   await page.mouse.move(0, 0);
   await page.screenshot({ path: `${OUT}/hero-${scheme}.png` });
+  await page.context().close();
+}
+
+// Phone and help screens.
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    colorScheme: 'light',
+    locale: 'en-US',
+  });
+  const page = await ctx.newPage();
+  await page.goto(BASE);
+  await page.locator('#f-text-content').fill('https://lucaswotta.github.io/codifyqr/');
+  await waitState(page, 'ok');
+  await page.screenshot({ path: `${TMP}/m-content.png` });
+  await page.locator('[data-nav="style"]').click();
+  await page.locator('[data-preset="ocean"]').click();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${TMP}/m-style.png` });
+  await page.locator('[data-nav="export"]').click();
+  await page.screenshot({ path: `${TMP}/m-export.png` });
+  await ctx.close();
+}
+{
+  const page = await newPage('light', { width: 1440, height: 900 });
+  await page.getByRole('button', { name: 'Help' }).click();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${OUT}/help.png` });
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Shift+?');
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${OUT}/shortcuts.png` });
   await page.context().close();
 }
 
@@ -170,6 +208,17 @@ for (const scheme of ['light', 'dark']) {
 await browser.close();
 
 const ff = (args) => execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...args]);
+ff([
+  '-i',
+  `${TMP}/m-content.png`,
+  '-i',
+  `${TMP}/m-style.png`,
+  '-i',
+  `${TMP}/m-export.png`,
+  '-filter_complex',
+  '[0]scale=390:-1[a];[1]scale=390:-1[b];[2]scale=390:-1[c];[a][b][c]hstack=inputs=3',
+  `${OUT}/mobile.png`,
+]);
 ff([
   '-i',
   `${TMP}/v-ok.png`,

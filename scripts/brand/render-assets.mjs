@@ -22,17 +22,20 @@ const jobs = [
   { svg: 'brand/wordmark.svg', out: 'brand/wordmark.png', w: 1020, h: 316 },
 ];
 
-const browser = await chromium.launch({ channel: 'chrome' });
+mkdirSync('.scratch', { recursive: true });
+const browser = await chromium.launch({ channel: 'chrome', args: ['--allow-file-access-from-files'] });
 const page = await browser.newPage();
 for (const job of jobs) {
   const size = job.inner ?? job.w;
   const pad = (job.w - size) / 2;
   await page.setViewportSize({ width: job.w, height: job.h });
-  await page.goto('about:blank');
-  await page.setContent(
+  // A real file page: about:blank cannot load file:// images.
+  writeFileSync(
+    '.scratch/render.html',
     `<body style="margin:0;background:${job.bg ?? 'transparent'}"><img src="${url(job.svg)}" style="position:absolute;left:${pad}px;top:${pad}px;width:${size}px;height:${job.inner ? size : job.h}px"></body>`,
   );
-  await page.waitForFunction(() => document.images[0].complete);
+  await page.goto(url('.scratch/render.html'));
+  await page.waitForFunction(() => document.images[0].complete && document.images[0].naturalWidth > 0);
   await page.screenshot({ path: job.out, omitBackground: !job.bg });
   console.log('wrote', job.out);
 }
