@@ -1383,6 +1383,9 @@ kbd {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 1px;
     background: var(--line);
+  }
+
+  .statusbar {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
@@ -1448,11 +1451,17 @@ kbd {
   .tool {
     grid-template-columns: minmax(0, 1fr);
     grid-auto-rows: min-content;
+    gap: 0;
+    background: var(--bg);
     overflow: auto;
   }
 
   .tool > .col {
     overflow: visible;
+  }
+
+  .tool > .col + .col {
+    border-top: 1px solid var(--line);
   }
 
   .tool-scan .col-stage {
