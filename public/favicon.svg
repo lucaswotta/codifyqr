@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" role="img" aria-labelledby="title">
+<title id="title">CodifyQR</title>
+<rect x="0" y="0" width="16" height="16" rx="3" fill="#183C36"/><rect x="7" y="1" width="2" height="2" rx="0" fill="#63DCC2"/><rect x="2" y="4" width="12" height="10" rx="3" fill="#F5F3EA"/><rect x="1" y="7" width="1" height="4" rx="0" fill="#63DCC2"/><rect x="14" y="7" width="1" height="4" rx="0" fill="#63DCC2"/><rect x="3" y="5" width="10" height="8" rx="2" fill="#183C36"/><path fill="#F5F3EA" fill-rule="evenodd" d="M4 6h3v3H4zM5 7v1h1V7zM9 6h3v3H9zM10 7v1h1V7z"/><path d="M6 10v2h4v-2H9v1H7v-1z" fill="#63DCC2"/>
+</svg>
