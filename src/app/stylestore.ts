@@ -28,7 +28,7 @@ export function sanitizeStyle(input: unknown): QrStyle {
     gradientAngle: num(raw.gradientAngle, 0, 360, DEFAULT_STYLE.gradientAngle),
     eyeColor: color(raw.eyeColor, null),
     bg: raw.bg === null ? null : color(raw.bg, DEFAULT_STYLE.bg),
-    margin: Math.round(num(raw.margin, 0, 10, DEFAULT_STYLE.margin)),
+    margin: Math.round(num(raw.margin, 0, 8, DEFAULT_STYLE.margin)),
     ecc: oneOf(['auto', ...ECC_LEVELS] as const, raw.ecc, 'auto'),
     logo: hasLogo ? { href: (logo as { href: string }).href, ratio: num(logo.ratio, 0.1, 0.32, 0.22) } : null,
   };

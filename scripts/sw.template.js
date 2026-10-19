@@ -27,7 +27,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   if (new URL(request.url).origin !== self.location.origin) return;
   event.respondWith(
-    caches.match(request, { ignoreSearch: true }).then((hit) => {
+    caches.match(request, { ignoreSearch: true, ignoreVary: true }).then((hit) => {
       if (hit) return hit;
       return request.mode === 'navigate' ? caches.match('./index.html') : fetch(request);
     }),
