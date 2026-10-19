@@ -82,6 +82,10 @@ A CI (`.github/workflows/ci.yml`) roda a cada push:
 | 2025-09 | Logo, texto, cores e três tamanhos de exportação; saída com bitmap esticado. |
 | 2026-10 | Reescrita: codificador próprio, renderização vetorial, conferência de leitura, dez tipos de conteúdo, PWA. Veja o [CHANGELOG.md](CHANGELOG.md). |
 
+![As quatro fases lado a lado, gravadas dos commits reais](docs/media/evolution/comparison.gif)
+
+Cada fase foi gravada do próprio commit (`004d276`, `c46d0a5`, `cd6e7c9` e o build atual): [2022](docs/media/evolution/2022-10.gif), [2025-08](docs/media/evolution/2025-08.gif), [2025-09](docs/media/evolution/2025-09.gif), [2026-10](docs/media/evolution/2026-10.gif). O `scripts/media/evolution.mjs` as regenera.
+
 ## Contribuir, segurança, licença
 
 Veja o [CONTRIBUTING.md](CONTRIBUTING.md) (inclusive como adicionar um idioma) e o [SECURITY.md](SECURITY.md). Licença MIT, veja [LICENSE](LICENSE) e [NOTICE](NOTICE).
