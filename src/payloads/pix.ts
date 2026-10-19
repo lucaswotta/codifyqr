@@ -100,7 +100,7 @@ export function classifyPixKey(raw: string): { type: PixKeyType; key: string } |
 const stripAccents = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '');
 const cleanLabel = (s: string) =>
   stripAccents(s)
-    .replace(/[^\p{L}\p{N} .,'-]/gu, '')
+    .replace(/[^A-Za-z0-9 .,'-]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .toUpperCase();

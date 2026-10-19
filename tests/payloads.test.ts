@@ -63,6 +63,16 @@ describe('pix', () => {
     if (result.ok) expect(result.text).toContain('6006BRASIL');
   });
 
+  it('keeps name and city ASCII so field lengths match bytes', () => {
+    const result = build('pix', { key: 'ana@example.com', name: 'Søren Straße', city: 'Łódź' });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.text).toMatch(/^[\x20-\x7e]+$/);
+      expect(result.text).toContain('5910SREN STRAE');
+      expect(result.text).toContain('6003ODZ');
+    }
+  });
+
   it('reports field errors without leaking values', () => {
     const result = build('pix', { key: 'nope', name: '', city: 'X', amount: '-3' });
     expect(result).toEqual({ ok: false, errors: { key: 'pixKey', name: 'required', amount: 'pixAmount' } });
