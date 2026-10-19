@@ -203,7 +203,7 @@ CI runs on every branch and blocks the deploy when something fails:
 
 ## Roadmap
 
-Open ideas with acceptance criteria are in the [issues](https://github.com/lucaswotta/codifyqr/issues): vector PDF for plain codes, mixed numeric/alphanumeric/byte segments to shrink codes, a Web Worker for batch, and a copyable view of the encoded text. Good first issues are labeled. To add a language, open an issue or a pull request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+The only open item is [issue #12](https://github.com/lucaswotta/codifyqr/issues/12): run the batch tool in a Web Worker. To add a language or suggest something else, open an issue or a pull request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Contributing
 

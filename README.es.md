@@ -203,7 +203,7 @@ La CI corre en cada rama y bloquea el despliegue cuando algo falla:
 
 ## Hoja de ruta
 
-Las ideas abiertas, con criterios de aceptación, están en las [issues](https://github.com/lucaswotta/codifyqr/issues): PDF vectorial para códigos simples, segmentos mixtos numérico/alfanumérico/byte para reducir los códigos, un Web Worker para el lote y una vista copiable del texto codificado. Las buenas primeras tareas están etiquetadas. Para añadir un idioma, abre una issue o un pull request (ver [CONTRIBUTING.md](CONTRIBUTING.md)).
+El único punto abierto es la [issue #12](https://github.com/lucaswotta/codifyqr/issues/12): ejecutar el lote en un Web Worker. Para añadir un idioma o sugerir otra cosa, abre una issue o un pull request (ver [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Contribuir
 
