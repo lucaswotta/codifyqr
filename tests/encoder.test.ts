@@ -81,6 +81,6 @@ describe('round trip with an independent decoder', () => {
   it('is deterministic', () => {
     const a = encodeText('same input');
     const b = encodeText('same input');
-    expect(Buffer.from(a.modules).equals(Buffer.from(b.modules))).toBe(true);
+    expect(Array.from(a.modules)).toEqual(Array.from(b.modules));
   });
 });
