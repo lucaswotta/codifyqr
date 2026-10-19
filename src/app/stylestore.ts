@@ -17,7 +17,7 @@ export function sanitizeStyle(input: unknown): QrStyle {
   const raw = (typeof input === 'object' && input !== null ? input : {}) as Record<string, unknown>;
   const logo = raw.logo as Record<string, unknown> | null | undefined;
   const hasLogo =
-    !!logo && typeof logo.href === 'string' && logo.href.startsWith('data:image/') && logo.href.length < 700_000;
+    !!logo && typeof logo.href === 'string' && logo.href.startsWith('data:image/') && logo.href.length < 3_000_000;
   return {
     shape: oneOf(MODULE_SHAPES, raw.shape, DEFAULT_STYLE.shape),
     eyeFrame: oneOf(EYE_FRAME_SHAPES, raw.eyeFrame, DEFAULT_STYLE.eyeFrame),
@@ -34,11 +34,17 @@ export function sanitizeStyle(input: unknown): QrStyle {
   };
 }
 
-const toBase64Url = (s: string) =>
-  btoa(String.fromCharCode(...new TextEncoder().encode(s)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+/** Encodes UTF-8 text to base64 in chunks so large SVG logos never overflow the call stack. */
+export function toBase64(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(bin);
+}
+
+const toBase64Url = (s: string) => toBase64(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const fromBase64Url = (s: string) =>
   new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
 
