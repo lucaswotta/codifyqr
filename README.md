@@ -9,6 +9,7 @@
 <br>
 
 **A free, open source QR code generator that runs entirely in your browser.**
+
 No account. No tracking. No network request after the page loads.
 
 <br>

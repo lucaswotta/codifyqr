@@ -9,6 +9,7 @@
 <br>
 
 **Un generador de códigos QR gratuito y de código abierto que funciona por completo en el navegador.**
+
 Sin cuenta. Sin rastreo. Sin ninguna petición de red después de cargar la página.
 
 <br>
