@@ -40,7 +40,6 @@ function serve(dir) {
   });
 }
 
-const git = (...args) => execFileSync('git', args, { stdio: 'pipe' });
 const ff = (args) => execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...args]);
 
 const PHASES = [
@@ -56,7 +55,7 @@ const PHASES = [
       await page.waitForFunction(
         () => {
           const i = document.querySelector('.qr-code .img');
-          return i && i.complete && i.naturalWidth > 0;
+          return i?.complete && i.naturalWidth > 0;
         },
         null,
         { timeout: 20000 },

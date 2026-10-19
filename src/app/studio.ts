@@ -23,6 +23,7 @@ import {
   type SavedStyle,
   saveStyles,
   styleToHash,
+  toBase64,
 } from './stylestore';
 
 const MASCOTS = { ok, risk, fail } as const;
@@ -65,8 +66,12 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     el('div', { class: 'verify-body' }, verifyTitle, verifyDetail, verifyCauses, fixButton),
   );
 
-  const sizeGroup = el('div', { class: 'chips chips-small', role: 'radiogroup', 'aria-label': t('export.size') });
-  sizeGroup.style.setProperty('--n', String(PNG_SIZES.length));
+  const sizeGroup = el('div', {
+    class: 'chips chips-small',
+    role: 'radiogroup',
+    'aria-label': t('export.size'),
+    'data-cols': String(PNG_SIZES.length),
+  });
   for (const size of PNG_SIZES) {
     sizeGroup.append(
       el('input', {
@@ -314,8 +319,12 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
     onPick: (o: T) => void,
     iconOf?: (o: T) => IconName | null,
   ): HTMLElement {
-    const group = el('div', { class: 'chips chips-small', role: 'radiogroup', 'aria-label': t(labelKey) });
-    group.style.setProperty('--n', String(options.length <= 5 ? options.length : 3));
+    const group = el('div', {
+      class: 'chips chips-small',
+      role: 'radiogroup',
+      'aria-label': t(labelKey),
+      'data-cols': String(options.length <= 5 ? options.length : 3),
+    });
     for (const option of options) {
       const id = `${name}-${option}`;
       group.append(
@@ -391,14 +400,6 @@ export function createStudio(notify: (message: string, kind?: 'info' | 'error') 
           onclick: () => setStyle({ fg: p.fg, fg2: p.fg2, bg: p.bg }, true),
         }),
       );
-    }
-    for (const swatch of Array.from(presets.children) as HTMLElement[]) {
-      const preset = COLOR_PRESETS.find((p) => p.id === swatch.dataset.preset);
-      if (preset) {
-        swatch.style.setProperty('--sw1', preset.fg);
-        swatch.style.setProperty('--sw2', preset.fg2 ?? preset.fg);
-        swatch.style.setProperty('--sw3', preset.bg ?? '#ffffff');
-      }
     }
 
     const gradient = s.fg2 ? s.gradient : 'none';
@@ -1248,7 +1249,7 @@ async function readLogo(file: File): Promise<string> {
   if (file.type === 'image/svg+xml') {
     const text = await file.text();
     if (!/<svg[\s>]/i.test(text)) throw new Error('not svg');
-    return `data:image/svg+xml;base64,${btoa(String.fromCharCode(...new TextEncoder().encode(text)))}`;
+    return `data:image/svg+xml;base64,${toBase64(text)}`;
   }
   if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error('unsupported');
   const url = URL.createObjectURL(file);
