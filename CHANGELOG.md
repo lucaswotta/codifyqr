@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1 (2026-10-19)
+
+- Paste an image (`Ctrl+V`) in `Scan` to decode it directly from the clipboard, and click `Edit in Create` on any decoded result to load its text into the editor.
+- Theme switches update the page in place without resetting active camera streams or batch jobs; language switches keep `Batch` and `Scan` content.
+- Pix payloads encode CRC16 over UTF-8 bytes and restrict recipient name and city to printable ASCII so TLV field lengths always match byte counts.
+- Large SVG logos encode in 32 KB chunks without overflowing the call stack and persist up to the 2 MB upload limit.
+- Batch ZIP exports build the `Blob` directly from file chunks without allocating a duplicate contiguous buffer.
+- Replaced runtime inline `.style.setProperty` calls with static CSS selectors and `data-cols` attributes under `style-src 'self'`.
+- Fixed duplicate `"batch.empty"` locale key and mid-width/mobile layout sizing.
+
 ## 2.0.0 (2026-10-19)
 
 Rewrite. The project changed from a one-page tool to a PWA with its own QR engine.
