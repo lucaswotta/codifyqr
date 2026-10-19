@@ -26,8 +26,7 @@ function dosDateTime(date: Date): { time: number; date: number } {
   };
 }
 
-/** Builds a ZIP archive with stored (uncompressed) entries. PNG and SVG gain little from deflate. */
-export function createZip(entries: readonly ZipEntry[], now = new Date()): Uint8Array {
+function zipParts(entries: readonly ZipEntry[], now = new Date()): Uint8Array[] {
   const encoder = new TextEncoder();
   const stamp = dosDateTime(now);
   const parts: Uint8Array[] = [];
@@ -76,7 +75,12 @@ export function createZip(entries: readonly ZipEntry[], now = new Date()): Uint8
   end.setUint32(12, centralSize, true);
   end.setUint32(16, offset, true);
 
-  const all = [...parts, ...central, new Uint8Array(end.buffer)];
+  return [...parts, ...central, new Uint8Array(end.buffer)];
+}
+
+/** Builds a ZIP archive with stored (uncompressed) entries. PNG and SVG gain little from deflate. */
+export function createZip(entries: readonly ZipEntry[], now = new Date()): Uint8Array {
+  const all = zipParts(entries, now);
   const out = new Uint8Array(all.reduce((n, p) => n + p.length, 0));
   let pos = 0;
   for (const p of all) {
@@ -84,4 +88,9 @@ export function createZip(entries: readonly ZipEntry[], now = new Date()): Uint8
     pos += p.length;
   }
   return out;
+}
+
+/** Builds a ZIP archive Blob directly from entry chunks without duplicating the payload in a single ArrayBuffer. */
+export function createZipBlob(entries: readonly ZipEntry[], now = new Date()): Blob {
+  return new Blob(zipParts(entries, now) as BlobPart[], { type: 'application/zip' });
 }
