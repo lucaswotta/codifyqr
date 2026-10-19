@@ -236,7 +236,7 @@
   "pdf.note": "The PDF holds a high resolution image. Use SVG for fully vector print files.",
   "batch.title": "Batch",
   "batch.lead": "One code per line. Add a second column to name each file. You can also import a CSV.",
-  "batch.empty": "The batch rows appear here.",
+  "batch.idle": "The batch rows appear here.",
   "batch.placeholder": "https://example.com/a,shop-a\nhttps://example.com/b,shop-b",
   "batch.import": "Import CSV",
   "batch.rows": "{n} codes",

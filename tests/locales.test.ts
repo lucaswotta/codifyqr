@@ -39,4 +39,11 @@ describe('locales', () => {
     }
     expect(missing).toEqual([]);
   });
+
+  it('has no duplicate keys in locale files', () => {
+    for (const file of ['src/locales/en.json', 'src/locales/pt-BR.json', 'src/locales/es.json']) {
+      const keys = [...readFileSync(file, 'utf8').matchAll(/^\s*"([^"]+)"\s*:/gm)].map((m) => m[1]!);
+      expect(keys, file).toHaveLength(new Set(keys).size);
+    }
+  });
 });
