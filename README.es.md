@@ -67,7 +67,7 @@ Sin cuenta. Sin rastreo. Sin ninguna petición de red después de cargar la pág
 | **Revisión de lectura** | Tres calidades simuladas de cámara, causa del fallo, corrección con un clic. |
 | **Exportación** | PNG (512 a 4096 px), SVG, PDF con tamaño físico, copiar al portapapeles, compartir. |
 | **Lote** | Pega líneas o importa un CSV (contenido y nombre de archivo opcional), hasta 500 filas, descargado como ZIP. |
-| **Lector** | Cámara o imagen. Nunca abre un enlace por sí solo y avisa de acortadores, dominios con caracteres parecidos, direcciones IP, `http`, credenciales incrustadas y contenido `javascript:` o `data:`. |
+| **Lector** | Cámara, archivo de imagen o imagen pegada con `Ctrl+V`; `Editar en Crear` lleva el texto leído al editor. Nunca abre un enlace por sí solo y avisa de acortadores, dominios con caracteres parecidos, direcciones IP, `http`, credenciales incrustadas y contenido `javascript:` o `data:`. |
 | **Estilos guardados** | Guarda estilos en el navegador, expórtalos como archivo o comparte un enlace (`#s=...`). Solo se guarda el aspecto, nunca el contenido. |
 | **Ayuda y atajos** | Una guía integrada y atajos de teclado para tipos, paneles, exportaciones, tema e idioma. Los atajos de una tecla se pueden desactivar. |
 | **App** | PWA instalable que funciona sin conexión, temas claro y oscuro, inglés, portugués (Brasil) y español, accesible (WCAG 2.2 AA, comprobado en la CI). |
@@ -196,7 +196,7 @@ La CI corre en cada rama y bloquea el despliegue cuando algo falla:
 - Los códigos son siempre estáticos. No hay servicio de redirección, así que un código no se puede editar después de imprimirlo y nada cuenta las lecturas. Es deliberado.
 - El PDF incrusta una imagen de alta resolución (hasta 600 dpi, menos en páginas grandes). Para archivos de impresión totalmente vectoriales, usa el SVG.
 - La revisión de lectura es una simulación y no prueba que todos los móviles lean el código.
-- El constructor de Pix crea solo códigos estáticos.
+- El constructor de Pix crea solo códigos estáticos. El nombre y la ciudad del beneficiario conservan solo `A-Z`, `0-9` y puntuación básica, así que letras como `Ø` o `Ł` se descartan.
 - El texto se limita a 2000 caracteres y a lo que cabe en un código versión 40 con la corrección de errores elegida.
 - La herramienta de lote procesa hasta 500 filas en el hilo principal, en pasos pequeños ([issue #12](https://github.com/lucaswotta/codifyqr/issues/12)).
 - Safari anterior a 16.4 no tiene `CompressionStream`; el PDF allí sale con menor resolución y sin compresión.

@@ -67,7 +67,7 @@ Sem conta. Sem rastreio. Sem nenhuma requisição de rede depois que a página c
 | **Conferência de leitura** | Três qualidades simuladas de câmera, causa da falha, correção com um clique. |
 | **Exportação** | PNG (512 a 4096 px), SVG, PDF com tamanho físico, copiar, compartilhar. |
 | **Lote** | Cole linhas ou importe um CSV (conteúdo e nome de arquivo opcional), até 500 linhas, baixado como ZIP. |
-| **Leitor** | Câmera ou imagem. Nunca abre um link sozinho e avisa sobre encurtadores, domínios com caracteres parecidos, endereços IP, `http`, credenciais embutidas e conteúdo `javascript:` ou `data:`. |
+| **Leitor** | Câmera, arquivo de imagem ou imagem colada com `Ctrl+V`; `Editar em Criar` leva o texto lido para o editor. Nunca abre um link sozinho e avisa sobre encurtadores, domínios com caracteres parecidos, endereços IP, `http`, credenciais embutidas e conteúdo `javascript:` ou `data:`. |
 | **Estilos salvos** | Salve visuais no navegador, exporte como arquivo ou compartilhe um link (`#s=...`). Só o visual é guardado, nunca o conteúdo. |
 | **Ajuda e atalhos** | Um guia embutido e atalhos de teclado para tipos, painéis, exportações, tema e idioma. Os atalhos de uma tecla podem ser desligados. |
 | **App** | PWA instalável que funciona offline, temas claro e escuro, inglês, português (Brasil) e espanhol, acessível (WCAG 2.2 AA, verificado na CI). |
@@ -196,7 +196,7 @@ A CI roda em toda branch e bloqueia o deploy quando algo falha:
 - Os códigos são sempre estáticos. Não há serviço de redirecionamento, então um código não pode ser editado depois de impresso e nada conta leituras. É proposital.
 - O PDF embute uma imagem de alta resolução (até 600 dpi, menos em páginas grandes). Para arquivos de impressão totalmente vetoriais, use o SVG.
 - A conferência de leitura é uma simulação e não prova que todo celular vai ler o código.
-- O construtor de Pix cria só códigos estáticos.
+- O construtor de Pix cria só códigos estáticos. Nome e cidade do recebedor mantêm apenas `A-Z`, `0-9` e pontuação básica, então letras como `Ø` ou `Ł` são descartadas.
 - O texto é limitado a 2000 caracteres e ao que cabe em um código versão 40 com a correção de erro escolhida.
 - A ferramenta de lote processa até 500 linhas na thread principal, em passos pequenos ([issue #12](https://github.com/lucaswotta/codifyqr/issues/12)).
 - O Safari anterior à 16.4 não tem `CompressionStream`; o PDF nele sai com resolução menor e sem compressão.

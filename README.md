@@ -67,7 +67,7 @@ No account. No tracking. No network request after the page loads.
 | **Read check** | Three simulated camera qualities, cause of failure, one-click fix. |
 | **Export** | PNG (512 to 4096 px), SVG, PDF with physical size, copy to clipboard, share. |
 | **Batch** | Paste lines or import a CSV (content and optional file name), up to 500 rows, downloaded as a ZIP. |
-| **Reader** | Camera or image. Never opens a link by itself and warns about shorteners, look-alike domains, raw IP addresses, `http`, embedded credentials and `javascript:` or `data:` content. |
+| **Reader** | Camera, image file or an image pasted with `Ctrl+V`; `Edit in Create` loads the decoded text into the editor. Never opens a link by itself and warns about shorteners, look-alike domains, raw IP addresses, `http`, embedded credentials and `javascript:` or `data:` content. |
 | **Saved styles** | Save looks in the browser, export them as a file, or share a link (`#s=...`). Only the look is stored, never the content. |
 | **Help and shortcuts** | A built-in guide, and keyboard shortcuts for types, panels, exports, theme and language. Single-key shortcuts can be switched off. |
 | **App** | Installable PWA that works offline, light and dark themes, English, Portuguese (Brazil) and Spanish, accessible (WCAG 2.2 AA, checked in CI). |
@@ -196,7 +196,7 @@ CI runs on every branch and blocks the deploy when something fails:
 - Codes are always static. There is no redirect service, so a code cannot be edited after printing and nothing counts scans. That is deliberate.
 - The PDF embeds a high resolution image (up to 600 dpi, less on large pages). For fully vector print files use the SVG.
 - The read check is a simulation and does not prove that every phone will read a code.
-- The Pix builder creates static codes only.
+- The Pix builder creates static codes only. Recipient name and city keep only `A-Z`, `0-9` and basic punctuation, so letters such as `Ø` or `Ł` are dropped.
 - Text is limited to 2000 characters and to what fits in a version 40 code with the chosen error correction.
 - The batch tool processes up to 500 rows on the main thread, in small steps ([issue #12](https://github.com/lucaswotta/codifyqr/issues/12)).
 - Safari before 16.4 has no `CompressionStream`; PDFs there use a lower resolution without compression.
