@@ -2,12 +2,16 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { chip, decodePng, downloadPng, fillContent } from './helpers';
 
-test('first code in under five seconds, no requests beyond the page itself, no console errors', async ({ page }) => {
+test('first code in under five seconds, no requests beyond the page itself, no console errors', async ({
+  page,
+  baseURL,
+}) => {
+  const origin = new URL(baseURL!).origin;
   const external: string[] = [];
   const problems: string[] = [];
   page.on('request', (r) => {
     const url = new URL(r.url());
-    if (url.origin !== 'http://localhost:4173' && !['data:', 'blob:'].includes(url.protocol)) external.push(r.url());
+    if (url.origin !== origin && !['data:', 'blob:'].includes(url.protocol)) external.push(r.url());
   });
   page.on('pageerror', (e) => problems.push(e.message));
   page.on('console', (m) => ['error', 'warning'].includes(m.type()) && problems.push(m.text()));
@@ -104,7 +108,7 @@ test('works offline after the first visit', async ({ page, context }) => {
   await context.setOffline(false);
 });
 
-test('a shared style link restores the look and carries no content', async ({ page }) => {
+test('a shared style link restores the look and carries no content', async ({ page, baseURL }) => {
   await page.goto('./');
   await fillContent(page, 'secret content');
   await chip(page, 'Dots').first().click();
@@ -118,7 +122,7 @@ test('a shared style link restores the look and carries no content', async ({ pa
   );
 
   const other = await page.context().newPage();
-  await other.goto(link.replace(/^https?:\/\/[^/]+/, 'http://localhost:4173'));
+  await other.goto(link.replace(/^https?:\/\/[^/]+/, new URL(baseURL!).origin));
   await expect(other.locator('input#shape-dots')).toBeChecked();
   await expect(other.locator('#c-fg')).toHaveValue('#0b3c8a');
   await expect(other.locator('#f-text-content')).toHaveValue('');
