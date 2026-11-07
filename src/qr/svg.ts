@@ -83,7 +83,7 @@ function cornerPath(
   return `${d}z`;
 }
 
-function safeColor(value: string | null, fallback: string): string {
+export function safeColor(value: string | null, fallback: string): string {
   return value && parseHex(value) ? value : fallback;
 }
 
@@ -100,12 +100,11 @@ export interface RenderOptions {
   title?: string;
 }
 
-export function renderQrSvg(plan: QrPlan, options: RenderOptions = {}): string {
+export function qrPaths(plan: QrPlan) {
   const { matrix, style } = plan;
   const { size } = matrix;
   const margin = Math.max(0, style.margin);
   const total = size + margin * 2;
-  const id = options.idPrefix ?? 'q';
   const box = logoBox(size, plan.logoRatio);
 
   const inEye = (x: number, y: number) => (x < 7 && y < 7) || (x >= size - 7 && y < 7) || (x < 7 && y >= size - 7);
@@ -190,6 +189,13 @@ export function renderQrSvg(plan: QrPlan, options: RenderOptions = {}): string {
     else eyes += circle(x + 3.5, y + 3.5, 1.5);
   }
 
+  return { modules, eyes, box, total, margin };
+}
+
+export function renderQrSvg(plan: QrPlan, options: RenderOptions = {}): string {
+  const { style } = plan;
+  const { modules, eyes, box, total, margin: o } = qrPaths(plan);
+  const id = options.idPrefix ?? 'q';
   const fg = safeColor(style.fg, '#000000');
   const fg2 = style.fg2 ? safeColor(style.fg2, fg) : null;
   let defs = '';

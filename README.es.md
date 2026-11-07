@@ -198,12 +198,12 @@ La CI corre en cada rama y bloquea el despliegue cuando algo falla:
 - La revisión de lectura es una simulación y no prueba que todos los móviles lean el código.
 - El constructor de Pix crea solo códigos estáticos. El nombre y la ciudad del beneficiario conservan solo `A-Z`, `0-9` y puntuación básica, así que letras como `Ø` o `Ł` se descartan.
 - El texto se limita a 2000 caracteres y a lo que cabe en un código versión 40 con la corrección de errores elegida.
-- La herramienta de lote procesa hasta 500 filas en el hilo principal, en pasos pequeños ([issue #12](https://github.com/lucaswotta/codifyqr/issues/12)).
+- La exportación de PNG por lotes requiere Web Workers, OffscreenCanvas y Path2D; hasta 500 filas se renderizan en un worker ([issue #12](https://github.com/lucaswotta/codifyqr/issues/12)).
 - Safari anterior a 16.4 no tiene `CompressionStream`; el PDF allí sale con menor resolución y sin compresión.
 
 ## Hoja de ruta
 
-El único punto abierto es la [issue #12](https://github.com/lucaswotta/codifyqr/issues/12): ejecutar el lote en un Web Worker. Para añadir un idioma o sugerir otra cosa, abre una issue o un pull request (ver [CONTRIBUTING.md](CONTRIBUTING.md)).
+El único punto abierto es la [issue #12](https://github.com/lucaswotta/codifyqr/issues/12): validar el worker de lotes frente al objetivo de reducir a la mitad el tiempo de 500 códigos a 512 px. Para añadir un idioma o sugerir otra cosa, abre una issue o un pull request (ver [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Contribuir
 
