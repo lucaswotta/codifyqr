@@ -41,3 +41,16 @@ export async function svgToPng(svg: string, width: number, height = width): Prom
 
 /** Maximum canvas edge that every supported browser can allocate. */
 export const MAX_CANVAS_EDGE = 8192;
+
+/** Decode logos once on the page, where SVG images are supported, before transferring to a worker. */
+export async function imageToBitmap(url: string, size: number): Promise<ImageBitmap> {
+  const img = await loadImage(url);
+  const scale = size / Math.max(img.naturalWidth, img.naturalHeight);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D is not available');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return createImageBitmap(canvas);
+}

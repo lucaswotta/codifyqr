@@ -1,9 +1,7 @@
+import type { BatchMessage, BatchRequest } from '../export/batch';
 import { parseCsv, toBatchRows, uniqueFileNames } from '../export/csv';
 import { fileName, saveBlob } from '../export/download';
-import { svgToPng } from '../export/raster';
-import { createZipBlob } from '../export/zip';
-import { PAYLOADS } from '../payloads';
-import { planQr, renderQrSvg } from '../qr/svg';
+import { imageToBitmap } from '../export/raster';
 import { clear, debounce, el } from './dom';
 import { t } from './i18n';
 import { icon } from './icons';
@@ -29,6 +27,7 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
 
   const rows = () => toBatchRows(parseCsv(input.value));
   const updateList = () => {
+    if (input.disabled) return;
     state.batch.input = input.value;
     const all = rows();
     const n = all.length;
@@ -60,7 +59,9 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
       const file = target.files?.[0];
       target.value = '';
       if (!file || file.size > 2 * 1024 * 1024) return;
-      input.value = await file.text();
+      const contents = await file.text();
+      if (input.disabled) return;
+      input.value = contents;
       updateList();
     },
   });
@@ -74,43 +75,59 @@ export function createBatch(notify: (message: string, kind?: 'info' | 'error') =
   generate.addEventListener('click', async () => {
     const all = rows().slice(0, BATCH_LIMIT);
     if (all.length === 0) return notify(t('batch.empty'), 'error');
+    updateList();
+    const controls = [
+      input,
+      fileInput,
+      ...formatField.querySelectorAll('input'),
+      ...sizeField.querySelectorAll('input'),
+    ];
+    for (const control of controls) control.disabled = true;
     generate.disabled = true;
     progress.hidden = false;
     progress.value = 0;
     status.textContent = '';
-    const names = uniqueFileNames(all, format);
     const items = [...list.children] as HTMLElement[];
     for (const item of items) item.dataset.state = 'idle';
-    const entries: { name: string; data: Uint8Array }[] = [];
-    const failed: string[] = [];
+    const request: BatchRequest = { rows: all, format, size, style: structuredClone(state.style) };
+    let worker: Worker | undefined;
+    let logo: ImageBitmap | undefined;
     try {
-      for (let i = 0; i < all.length; i++) {
-        const built = PAYLOADS.text.build({ content: all[i]!.content });
-        try {
-          if (!built.ok) throw new Error('invalid');
-          const plan = planQr(built.text, state.style);
-          const svg = renderQrSvg(plan, { px: size });
-          const data =
-            format === 'svg'
-              ? new TextEncoder().encode(`<?xml version="1.0" encoding="UTF-8"?>\n${svg}`)
-              : new Uint8Array(await (await svgToPng(svg, size)).arrayBuffer());
-          entries.push({ name: names[i]!, data });
-          if (items[i]) items[i]!.dataset.state = 'ok';
-        } catch {
-          failed.push(String(i + 1));
-          if (items[i]) items[i]!.dataset.state = 'fail';
-        }
-        progress.value = (i + 1) / all.length;
-        status.textContent = t('batch.progress', { done: i + 1, total: all.length });
-        if (i % 4 === 3) await new Promise((r) => setTimeout(r));
+      if (format === 'png' && request.style.logo?.href.startsWith('data:image/')) {
+        logo = await imageToBitmap(request.style.logo.href, size);
+        request.logo = logo;
       }
-      if (entries.length > 0) {
-        saveBlob(createZipBlob(entries), fileName('batch', 'zip'));
+      worker = new Worker(new URL('../export/batch.worker.ts', import.meta.url), { type: 'module' });
+      const completed = await new Promise<Extract<BatchMessage, { type: 'done' }>>((resolve, reject) => {
+        worker!.onerror = () => reject(new Error('Batch worker failed'));
+        worker!.onmessageerror = () => reject(new Error('Invalid batch worker message'));
+        worker!.onmessage = ({ data }: MessageEvent<BatchMessage>) => {
+          if (data.type === 'error') reject(new Error('Batch rendering failed'));
+          else if (data.type === 'done') resolve(data);
+          else {
+            if (items[data.index]) items[data.index]!.dataset.state = data.ok ? 'ok' : 'fail';
+            progress.value = (data.index + 1) / all.length;
+            status.textContent = t('batch.progress', { done: data.index + 1, total: all.length });
+          }
+        };
+        worker!.postMessage(request, logo ? [logo] : []);
+      });
+      if (completed.zip) {
+        saveBlob(completed.zip, fileName('batch', 'zip'));
         status.textContent = t('batch.done');
       }
-      if (failed.length > 0)
-        notify(t('batch.failedRows', { n: failed.length, list: failed.slice(0, 10).join(', ') }), 'error');
+      if (completed.failed.length > 0)
+        notify(
+          t('batch.failedRows', { n: completed.failed.length, list: completed.failed.slice(0, 10).join(', ') }),
+          'error',
+        );
+    } catch {
+      status.textContent = t('export.failed');
+      notify(t('export.failed'), 'error');
     } finally {
+      worker?.terminate();
+      logo?.close();
+      for (const control of controls) control.disabled = false;
       generate.disabled = false;
       progress.hidden = true;
     }

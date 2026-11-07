@@ -198,12 +198,12 @@ CI runs on every branch and blocks the deploy when something fails:
 - The read check is a simulation and does not prove that every phone will read a code.
 - The Pix builder creates static codes only. Recipient name and city keep only `A-Z`, `0-9` and basic punctuation, so letters such as `Ø` or `Ł` are dropped.
 - Text is limited to 2000 characters and to what fits in a version 40 code with the chosen error correction.
-- The batch tool processes up to 500 rows on the main thread, in small steps ([issue #12](https://github.com/lucaswotta/codifyqr/issues/12)).
+- Batch PNG export requires Web Workers, OffscreenCanvas and Path2D; up to 500 rows are rendered in a worker ([issue #12](https://github.com/lucaswotta/codifyqr/issues/12)).
 - Safari before 16.4 has no `CompressionStream`; PDFs there use a lower resolution without compression.
 
 ## Roadmap
 
-The only open item is [issue #12](https://github.com/lucaswotta/codifyqr/issues/12): run the batch tool in a Web Worker. To add a language or suggest something else, open an issue or a pull request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+The only open item is [issue #12](https://github.com/lucaswotta/codifyqr/issues/12): validate the batch worker against the target of halving the time for 500 codes at 512 px. To add a language or suggest something else, open an issue or a pull request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Contributing
 
